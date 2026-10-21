@@ -98,7 +98,7 @@ def message_tests():
     test = a.iloc[te]
     det = MessageDetector()
     uniq = test["content"].drop_duplicates()
-    verdicts = {t: det.analyze(t) for t in uniq}
+    verdicts = dict(zip(uniq, det.analyze_many(uniq, channel="post")))
     hybrid = test["content"].map(lambda t: verdicts[t].label)
     ml = test["content"].map(lambda t: verdicts[t].ml_label)
     labels = ["Safe", "Phishing", "Money Scam", "Spam", "Misinformation", "Impersonation", "Adult Scam"]

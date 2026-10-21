@@ -4,7 +4,8 @@ Compares: ML model only, Hybrid (rules + ML), Hybrid + local AI second opinion.
 Needs Ollama running with the model pulled (ollama pull qwen2.5:3b).
 
 Run from the project root:  python src/evaluate_ai.py [path/to/messages.csv]
-Writes reports/ai_eval_results.json and prints a summary.
+Writes reports/ai_eval_<file>.json for each test file and prints a summary.
+With no arguments it runs data/dm_messages.csv (Test 1) and data/dm_test2.csv (Test 2).
 """
 import json
 import sys
@@ -20,12 +21,18 @@ from detector import SAFE, MessageDetector  # noqa: E402
 
 
 def main():
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "data/dm_messages.csv"
-    d = pd.read_csv(path)
     ready, model = ai_layer.status()
     if not ready:
         print("AI layer not available:", model)
         sys.exit(1)
+    paths = [Path(p) for p in sys.argv[1:]] or [p for p in (ROOT / "data/dm_messages.csv", ROOT / "data/dm_test2.csv") if p.exists()]
+    for path in paths:
+        print(f"\n===== {path.name} =====")
+        run(path, model)
+
+
+def run(path, model):
+    d = pd.read_csv(path)
     det = MessageDetector()
     rows = []
     print(f"Testing {len(d)} messages with {model} (a few seconds each) ...")
@@ -55,12 +62,13 @@ def main():
            "avg_seconds_per_message": round(float(df["seconds"].mean()), 2),
            "summary": summary, "per_class_detection": per_class, "rows": rows}
     (ROOT / "reports").mkdir(exist_ok=True)
-    (ROOT / "reports/ai_eval_results.json").write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    out_path = ROOT / f"reports/ai_eval_{path.stem}.json"
+    out_path.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
     print("\nRESULTS")
     for name, s in summary.items():
         print(f"  {name:22s} attacks caught {s['attacks_detected']:.0%} | correct type {s['correct_type']:.0%} | false alarms {s['false_alarms']:.0%}")
     print(f"  Average AI time per message: {out['avg_seconds_per_message']} s")
-    print("Saved to reports/ai_eval_results.json")
+    print(f"Saved to {out_path.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

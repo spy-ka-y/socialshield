@@ -102,7 +102,7 @@ def main():
     det = MessageDetector()
     uniq = acts["content"].drop_duplicates().tolist()
     print(f"scoring {len(uniq)} unique post texts ...")
-    verdicts = dict(zip(uniq, det.analyze_many(uniq)))
+    verdicts = dict(zip(uniq, det.analyze_many(uniq, channel="post")))
     acts["alert"] = acts["content"].map(lambda t: verdicts[t].label)
     acts["risk"] = acts["content"].map(lambda t: verdicts[t].risk)
     acts["rules"] = acts["content"].map(lambda t: ",".join(h["id"] for h in verdicts[t].rule_hits))

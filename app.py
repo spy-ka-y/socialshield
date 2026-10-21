@@ -509,7 +509,7 @@ def page_feed():
                 r = src.iloc[ss.feed_sel]
                 with st.container(border=True):
                     st.caption(f"Posted {r['timestamp']} · {r['device']} · {r['post_country']}")
-                    verdict_view(r["content"], det.analyze(r["content"]), r["user_id"], incident_key=f"post:{r['activity_id']}")
+                    verdict_view(r["content"], det.analyze(r["content"], channel="post"), r["user_id"], incident_key=f"post:{r['activity_id']}")
             else:
                 st.markdown(f"<div class='card'><div class='l'>Alert details will appear here.</div></div>",
                             unsafe_allow_html=True)

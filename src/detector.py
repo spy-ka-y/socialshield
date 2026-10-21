@@ -49,7 +49,7 @@ RULES = [
     # Misinformation
     ("MI-01", "Misinformation", 0.35, r"\bshare (this )?before (it'?s |they )?(deleted|removed|delete|take)",
      "Urges sharing before it gets deleted"),
-    ("MI-02", "Misinformation", 0.30, r"\b(they|media|government|doctors|mainstream)\b.{0,30}\b(don'?t want you to know|hiding|won'?t (tell|report)|cover(ing)? up)\b",
+    ("MI-02", "Misinformation", 0.30, r"\b(they|media|government|doctors|mainstream|\w+ pumps?|companies|banks)\b.{0,30}\b(don'?t want you to know|hiding|won'?t (tell|report)|cover(ing)? up)\b",
      "Claims a cover-up by media or authorities"),
     ("MI-03", "Misinformation", 0.20, r"\b(research it yourself|do your own research|wake up|100% (true|proof|proven)|exposed)\b",
      "Uses conspiracy-style persuasion phrases"),
@@ -65,6 +65,41 @@ RULES = [
      "Claims to be an official account or support team"),
     ("IM-02", "Impersonation", 0.25, r"\b(new (number|account)|my old account (was )?hacked|lost my phone)\b",
      "Says it is a known person on a new account (common impersonation trick)"),
+    # ---- Version 2 rules (improvement round, written from Test 1 failures and known scam types) ----
+    ("MS-05", "Money Scam", 0.45, r"\b(registration|processing|file|customs|joining|activation)\s+(fee|fees|charges?|tax)\b|\bdeposit\s+(rs\.?|₹)?\s*[\d,]+\s+first\b",
+     "Asks for an upfront fee before you receive money (advance-fee fraud)"),
+    ("MS-06", "Money Scam", 0.45, r"\b(won|winner|lucky draw|lottery|jackpot)\b.{0,80}\b(pay|fee|tax|charges?)\b",
+     "Prize that requires a payment first"),
+    ("MS-07", "Money Scam", 0.5, r"\bcollect request\b|\bapprove\b.{0,30}\b(with your )?(upi )?pin\b",
+     "Asks you to approve a UPI collect request with your PIN (this sends money, it never receives it)"),
+    ("MS-08", "Money Scam", 0.35, r"\bearn (up to )?(rs\.?|₹)\s*[\d,]+\s*(daily|per day|a day)\b|\b(liking|like) (youtube )?videos\b",
+     "Too-good-to-be-true earning offer"),
+    ("MS-09", "Money Scam", 0.35, r"\b\d{2,4}% returns?\b|\binsider (calls?|tips?|info)\b|\bguaranteed returns?\b|\bzero risk\b|\bjoin (our )?vip\b",
+     "Promises guaranteed or insider investment profits"),
+    ("IM-03", "Impersonation", 0.3, r"\b(this is|i am|i'm|calling from)\s+(your\s+|the\s+)?(hod|principal|ceo|boss|manager|admin|cyber ?crime( department)?|police|bank'?s? customer care|customer care)\b",
+     "Claims to be a boss, official or authority"),
+    ("IM-04", "Impersonation", 0.45, r"\b(buy|send|purchase)\b.{0,40}\b(gift ?cards?|google play( cards?)?|vouchers?)\b",
+     "Asks you to buy gift cards or vouchers (a classic boss-impersonation scam)"),
+    ("IM-05", "Impersonation", 0.45, r"(?<!not )(?<!never )(?<!n't )\b(send|share)\s+(me\s+)?the\s+(\d[- ]digit\s+)?(code|otp)\b",
+     "Asks you to share a code or OTP you received"),
+    ("IM-06", "Impersonation", 0.3, r"\b(using (my )?friend'?s (phone|number)|my (old )?phone (broke|is broken|is not working))\b",
+     "Says they are messaging from someone else's phone"),
+    ("IM-07", "Impersonation", 0.4, r"\b(case (is )?registered against|arrest warrant|stay on (the )?video call|keep (it|this) confidential)\b",
+     "Uses legal threats or secrecy to pressure you"),
+    ("SP-03", "Spam", 0.5, r"\b\d{1,2}% off\b|\bmega sale\b|\bbuy 1 get 1\b|\bfree (shaker|demo( class)?)\b|\breply stop\b|\bunsubscribe\b|\bcheapest rates?\b|\bjoin our whatsapp channel\b|\bcall now\b",
+     "Promotional or marketing message"),
+    ("SP-04", "Spam", 0.5, r"\bforward this to \d+ (people|contacts)\b|\bdon'?t break the chain\b",
+     "Chain message asking you to forward it"),
+    ("SP-05", "Spam", 0.5, r"\b\d+\s*(instagram )?followers for\b|\bseo services\b|\brank your website\b",
+     "Sells fake followers or ranking services"),
+    ("PH-07", "Phishing", 0.35, r"\b(sign in|log ?in|submit your (net ?banking )?(login|password|details))\b.{0,40}(to (upgrade|receive|claim|continue|unlock)|\bat\b)",
+     "Asks you to sign in or submit login details through a link"),
+    ("MI-05", "Misinformation", 0.45, r"\b(cures?|cure for)\b.{0,40}\b(diabetes|cancer|covid|virus(es)?|disease)\b|\bimmune to all\b|\bgives you cancer\b",
+     "Miracle cure or false health claim"),
+    ("MI-06", "Misinformation", 0.3, r"\bfrom tomorrow\b|\bnew rbi rule\b|\bnasa has confirmed\b|\bscientists have proven\b|\bdoctors are hiding\b",
+     "Unverified official announcement or 'experts confirm' claim"),
+    ("MI-07", "Misinformation", 0.25, r"\bplease share\b|\bshare with (your )?family\b|\bit can save lives\b",
+     "Urges you to spread the claim"),
     # Shared amplifiers (no category of their own)
     ("GN-01", None, 0.15, r"\b(urgent(ly)?|immediately|right now|asap|within \d+ (hours|minutes)|act fast|last chance|today only)\b",
      "Creates urgency or time pressure"),
@@ -72,6 +107,18 @@ RULES = [
      "Contains a link"),
 ]
 COMPILED = [(rid, cat, w, re.compile(rx, re.I), why) for rid, cat, w, rx, why in RULES]
+# A business advertising on its own public page is normal; the same advert sent uninvited in a DM is spam.
+DM_ONLY_RULES = {"SP-03"}
+
+# Signs of a genuine message. They lower the score; they never remove a strong rule match on their own.
+BENIGN = [
+    ("OK-01", 0.4, r"\b(do not|don'?t) share (it|this|your otp)\b", "Genuine OTP notices tell you NOT to share the code"),
+    ("OK-02", 0.4, r"\bcall the number on the back of your card\b", "Points you to your card's official number, not a link"),
+    ("OK-03", 0.3, r"\bhas been shipped\b|\bwill arrive by\b", "Normal delivery update"),
+    ("OK-04", 0.3, r"\bpay me back\b|\byou (still )?owe me\b", "A friend asking to be paid back"),
+]
+BENIGN_COMPILED = [(rid, w, re.compile(rx, re.I), why) for rid, w, rx, why in BENIGN]
+ML_ONLY_THRESHOLD = 0.8  # with no rule match, the ML model alone must be at least this sure
 
 ATTACK_INFO = {
     "Phishing": {
@@ -129,9 +176,11 @@ class MessageDetector:
         self.word_names = self.word_vec.get_feature_names_out()
         self.clf = self.model.steps[-1][1]
 
-    def _rules(self, text):
+    def _rules(self, text, channel="dm"):
         hits = []
         for rid, cat, w, rx, why in COMPILED:
+            if channel != "dm" and rid in DM_ONLY_RULES:
+                continue
             found = [m.group(0) for m in rx.finditer(text)]
             if found:
                 hits.append({"id": rid, "category": cat, "weight": w, "why": why, "matches": found})
@@ -151,32 +200,37 @@ class MessageDetector:
         # Hide placeholder tokens and words like "is", "my" that carry no meaning for a reader.
         return "token" in term or all(w in ENGLISH_STOP_WORDS or len(w) < 3 for w in term.split())
 
-    def analyze(self, text: str) -> Verdict:
-        return self._combine(text, dict(zip(self.classes, self.model.predict_proba([text])[0])))
+    def analyze(self, text: str, channel: str = "dm") -> Verdict:
+        """channel: "dm" for private messages and scanned text, "post" for public posts."""
+        return self._combine(text, dict(zip(self.classes, self.model.predict_proba([text])[0])), channel)
 
-    def analyze_many(self, texts) -> list:
+    def analyze_many(self, texts, channel: str = "dm") -> list:
         """Score many messages at once (one batched ML call, then rules per message)."""
         texts = list(texts)
         probs = self.model.predict_proba(texts)
-        return [self._combine(t, dict(zip(self.classes, p))) for t, p in zip(texts, probs)]
+        return [self._combine(t, dict(zip(self.classes, p)), channel) for t, p in zip(texts, probs)]
 
-    def _combine(self, text: str, probs: dict) -> Verdict:
+    def _combine(self, text: str, probs: dict, channel: str = "dm") -> Verdict:
         ml_label = max(probs, key=probs.get)
-        hits = self._rules(text)
+        hits = self._rules(text, channel)
 
-        # Score each attack category: ML probability plus the weight of matching rules.
+        # Score each attack category: ML probability plus the weight of matching rules, minus benign signs.
         amplifier = sum(h["weight"] for h in hits if h["category"] is None)
-        scores = {}
+        benign = [{"id": rid, "weight": w, "why": why, "matches": [m.group(0) for m in rx.finditer(text)]}
+                  for rid, w, rx, why in BENIGN_COMPILED if rx.search(text)]
+        calm = sum(b["weight"] for b in benign)
+        scores, rule_scores = {}, {}
         for cat in ATTACK_INFO:
-            rule_score = sum(h["weight"] for h in hits if h["category"] == cat)
-            scores[cat] = probs.get(cat, 0) + rule_score + (amplifier if rule_score > 0 else 0)
+            rule_scores[cat] = sum(h["weight"] for h in hits if h["category"] == cat)
+            scores[cat] = probs.get(cat, 0) + rule_scores[cat] + (amplifier if rule_scores[cat] > 0 else 0) - calm
         best = max(scores, key=scores.get)
-        risk = min(scores[best], 1.0)
+        risk = max(min(scores[best], 1.0), 0.0)
 
-        # Raise an alert if the combined evidence is strong enough.
-        label = best if risk >= 0.5 else SAFE
+        # Raise an alert if the evidence is strong enough. The ML model alone needs high confidence.
+        strong_enough = rule_scores[best] > 0 or probs.get(best, 0) >= ML_ONLY_THRESHOLD
+        label = best if (risk >= 0.5 and strong_enough) else SAFE
         if label == SAFE:
-            risk = min(1 - probs.get(SAFE, 0) + amplifier * 0.5, 0.49)
+            risk = max(min(1 - probs.get(SAFE, 0) + amplifier * 0.5 - calm, 0.49), 0.0)
         return Verdict(
             label=label, risk=round(float(risk), 3), ml_label=ml_label,
             ml_probs={k: round(float(v), 3) for k, v in probs.items()},
