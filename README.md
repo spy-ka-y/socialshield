@@ -1,0 +1,38 @@
+# SocialShield
+
+ML-based Fake Account and Social Engineering Attack Detection. Network Security project, MPSTME.
+
+SocialShield detects fake and bot accounts, flags malicious posts and DMs (phishing, money scams,
+spam, misinformation, impersonation, adult scams), lets an analyst respond to every alert
+(block, quarantine, false alarm), shows how misinformation spreads, and tests how well the
+models hold up when attackers adapt.
+
+## Detection layers
+1. **Signature rules**: 20 known scam patterns (like antivirus or IDS signatures).
+2. **Message ML model**: TF-IDF + Logistic Regression trained on 131,284 posts.
+3. **Account model**: Random Forest on profile and behaviour features, plus an attack-type model.
+4. **Optional local AI second opinion**: a small language model run locally with Ollama
+   (default `qwen2.5:3b`). It can add an alert the other layers missed but can never clear one,
+   and messages that try to instruct the AI (prompt injection) are treated as attacks.
+
+## Run locally (Windows)
+1. Double-click `setup.bat` once (installs libraries and trains the models).
+2. Double-click `run_app.bat`.
+3. Optional AI layer: install Ollama, then run `ollama pull qwen2.5:3b`.
+
+## Run anywhere else
+```
+pip install -r requirements.txt
+streamlit run app.py
+```
+On first start the app trains its models automatically (about 2 minutes).
+The AI layer is skipped when Ollama is not available, for example on Streamlit Cloud.
+
+## Change the colour theme
+`python src/set_theme.py light` (or `midnight`, `terminal`, `slate`), then restart the app.
+
+## Data
+- `data/raw_user_profiles.csv`, `data/raw_user_activities.csv`: Kaggle "Fake Profile and Post Detection on Social Media" (synthetic).
+- `data/dm_messages.csv`: team-written DM test set (`text,label`). Used only for testing, never for training.
+- DMs and spread paths are simulated because the dataset has neither. Share counts are real.
+- `account_type` and `content_type` are never used as features because they reveal the label.
