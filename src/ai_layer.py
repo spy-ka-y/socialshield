@@ -81,7 +81,7 @@ def status():
 def check(text: str, model: str, timeout: float = 60) -> AIResult:
     injection = bool(INJECTION_RE.search(text))
     body = json.dumps({
-        "model": model, "stream": False, "format": "json", "options": {"temperature": 0},
+        "model": model, "stream": False, "format": "json", "options": {"temperature": 0}, "keep_alive": "1h",
         "messages": [{"role": "system", "content": SYSTEM},
                      {"role": "user", "content": f"<<<MESSAGE>>>\n{text}\n<<<END>>>"}],
     }).encode("utf-8")

@@ -16,9 +16,9 @@ models hold up when attackers adapt.
    and messages that try to instruct the AI (prompt injection) are treated as attacks.
 
 ## Run locally (Windows)
-1. Double-click `setup.bat` once (installs libraries and trains the models).
-2. Double-click `run_app.bat`.
-3. Optional AI layer: install Ollama, then run `ollama pull qwen2.5:3b`.
+Double-click `SocialShield.bat`. It installs everything on first run, starts Ollama in the
+background, downloads and preloads the AI model if needed, and opens the app in your browser.
+(Without Ollama installed it still works, just without the AI second opinion.)
 
 ## Run anywhere else
 ```
