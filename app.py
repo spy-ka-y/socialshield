@@ -142,7 +142,7 @@ def ai_check(text, model):
 
 def ai_on():
     ready, model = ai_status()
-    return (ready and st.session_state.get("ai_on", True)), model
+    return (ready and st.session_state.get("ai_on", False)), model
 
 
 def second_opinion(text, v):
@@ -879,9 +879,9 @@ with st.sidebar:
     n_open = sum(i["status"] == incidents.OPEN for i in incidents.all_incidents())
     st.page_link(P["incidents"], label=f"**{n_open} open alerts**", icon="🔔")
     ready, model = ai_status()
-    st.session_state.setdefault("ai_on", True)
+    st.session_state.setdefault("ai_on", False)
     st.toggle("🤖 AI second opinion", key="ai_on", disabled=not ready,
-              help="A local AI model double-checks messages the rules and ML model think are safe. "
+              help="A local AI model double-checks messages the rules and ML model think are safe. Off by default: on unseen messages it caught 94% of attacks but also flagged 67% of genuine ones. "
                    "Runs on this laptop with Ollama; nothing is sent to the internet.")
     st.caption(f"Local model: {model}" if ready else f"AI layer offline: {model}")
     st.divider()
