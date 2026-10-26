@@ -370,7 +370,7 @@ def page_home():
     st.subheader("How SocialShield decides")
     c = st.columns(3)
     for col, (icon, h, d) in zip(c, [
-            ("📋", "Scam signatures", "20 known scam patterns, like urgent payment requests or 'verify your account' links. Works like antivirus signatures."),
+            ("📋", "Scam signatures", "37 known scam patterns, like urgent payment requests or 'verify your account' links. Works like antivirus signatures."),
             ("🧠", "Message AI model", "A machine learning model trained on 131,284 real and malicious posts to recognise scam wording."),
             ("👤", "Account checker", "A second model that spots fake and bot accounts from their profile and posting behaviour.")]):
         col.markdown(f"<div class='step'><div class='h'>{icon} {h}</div><div class='d'>{d}</div></div>", unsafe_allow_html=True)
@@ -608,7 +608,7 @@ def page_dm():
 
 
 def page_analyzer():
-    intro("🔍 Message scanner", "Paste any message or post. SocialShield checks it against 20 known scam patterns "
+    intro("🔍 Message scanner", "Paste any message or post. SocialShield checks it against 37 known scam patterns "
           "and an ML model, then explains its decision.")
     examples = {
         "🎣 Phishing": "Dear user, your Instagram account will be suspended within 24 hours. Verify your login details here: insta-verify-help.net",
@@ -742,7 +742,7 @@ def page_spread():
             st.markdown(f"**{title}**<br><span class='small'>{html.escape(text)}</span>", unsafe_allow_html=True)
             m = st.columns(3)
             card(m[0], c["stats"]["reshares"], "reshares", color)
-            card(m[1], f"{c['stats']['potential_reach']:,}", "people reached*", color, "Simulated: total followers of everyone who reshared. Shows scale, not a measured number.")
+            card(m[1], (f"{c['stats']['potential_reach'] / 1000:.0f}k" if c['stats']['potential_reach'] >= 10000 else f"{c['stats']['potential_reach']:,}"), "people reached*", color, "Simulated: total followers of everyone who reshared. Shows scale, not a measured number.")
             card(m[2], c["stats"]["depth"], "levels deep", color, "How many reshare steps away from the original poster it travelled.")
             st.plotly_chart(network_fig(c, color), use_container_width=True)
     fig = go.Figure()
