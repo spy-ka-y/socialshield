@@ -1,0 +1,223 @@
+{
+  "model": "distilbert-base-multilingual-cased",
+  "epochs": 3,
+  "train_size": 9079,
+  "Real SMS test split": {
+    "v2": {
+      "caught": 0.2282,
+      "false_alarms": 0.001,
+      "n": 1115
+    },
+    "v3": {
+      "caught": 0.9463,
+      "false_alarms": 0.0052,
+      "n": 1115
+    },
+    "Transformer": {
+      "caught": 0.9732,
+      "false_alarms": 0.0041,
+      "n": 1115
+    },
+    "Transformer + v2 rules": {
+      "caught": 0.9732,
+      "false_alarms": 0.0052,
+      "n": 1115
+    }
+  },
+  "Test 2 (unseen DMs)": {
+    "v2": {
+      "caught": 0.5556,
+      "false_alarms": 0.1667,
+      "n": 30
+    },
+    "v3": {
+      "caught": 0.8889,
+      "false_alarms": 0.4167,
+      "n": 30
+    },
+    "Transformer": {
+      "caught": 0.9444,
+      "false_alarms": 0.5833,
+      "n": 30
+    },
+    "Transformer + v2 rules": {
+      "caught": 0.9444,
+      "false_alarms": 0.6667,
+      "n": 30
+    }
+  },
+  "test2_details": [
+    {
+      "text": "SBI Alert: Your YONO account will be suspended today. Re-verify your PAN at sbi-yono-updat",
+      "label": 1,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "FASTag KYC pending. Your tag will be deactivated within 12 hours. Complete verification no",
+      "label": 1,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Your Apple ID has been locked for security reasons. Confirm your identity at appleid-unloc",
+      "label": 1,
+      "transformer_score": 0.992
+    },
+    {
+      "text": "DHL: Shipment on hold at customs. Pay Rs 48 clearance charge using the secure link dhl-cus",
+      "label": 1,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Work from home data entry job! Earn Rs 30,000 a month. Pay a refundable Rs 1499 security d",
+      "label": 1,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Double your money in 15 days with our forex trading bot. Already 2 lakh members earning. M",
+      "label": 1,
+      "transformer_score": 0.989
+    },
+    {
+      "text": "Congratulations, your number won an iPhone 17 in the Jio anniversary lucky draw. Pay Rs 79",
+      "label": 1,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Your old Rs 10 coin collection is worth Rs 5 lakh! Register with us for Rs 500 and we will",
+      "label": 1,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Diwali Dhamaka! Up to 80% off on electronics. Free gift on orders above Rs 999. Shop now b",
+      "label": 1,
+      "transformer_score": 0.998
+    },
+    {
+      "text": "Learn stock trading in just 7 days. Free webinar tonight at 8 PM. Seats filling fast, regi",
+      "label": 1,
+      "transformer_score": 0.998
+    },
+    {
+      "text": "Hi! Check out my new cooking channel and subscribe, like and share with all your groups pl",
+      "label": 1,
+      "transformer_score": 0.047
+    },
+    {
+      "text": "Viral video: drinking cow urine every morning protects you from heart attacks. Doctors are",
+      "label": 1,
+      "transformer_score": 0.703
+    },
+    {
+      "text": "Government will give free laptops to all college students this month. Just forward this me",
+      "label": 1,
+      "transformer_score": 0.998
+    },
+    {
+      "text": "Forward alert: UPI transactions will be charged 2% from tomorrow as per new RBI order. Wit",
+      "label": 1,
+      "transformer_score": 0.998
+    },
+    {
+      "text": "Hello beta, this is Papa. My phone is not working, I am using uncle's number. Send Rs 10,0",
+      "label": 1,
+      "transformer_score": 0.997
+    },
+    {
+      "text": "Hi, this is Professor Mehta. I need a small favour. Please buy two Amazon vouchers of Rs 5",
+      "label": 1,
+      "transformer_score": 0.992
+    },
+    {
+      "text": "This is the TRAI officer. Your mobile number will be disconnected in 2 hours due to illega",
+      "label": 1,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Hey it's Ananya, I lost my phone and this is my temporary number. Can you send me the code",
+      "label": 1,
+      "transformer_score": 0.727
+    },
+    {
+      "text": "123456 is your OTP to verify your Flipkart account. Never share this OTP with anyone. Flip",
+      "label": 0,
+      "transformer_score": 0.996
+    },
+    {
+      "text": "Your Zepto order is out for delivery. Delivery partner Rohit will reach in 8 minutes.",
+      "label": 0,
+      "transformer_score": 0.12
+    },
+    {
+      "text": "Dear customer, Rs 1,200 credited to your account XX4521 via UPI from AMIT SHARMA. Availabl",
+      "label": 0,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Bro can you lend me 300 till tomorrow? Forgot my wallet at home, will GPay you back after ",
+      "label": 0,
+      "transformer_score": 0.06
+    },
+    {
+      "text": "Your Blue Dart shipment AWB 4459210 has been delivered. Thank you for choosing Blue Dart.",
+      "label": 0,
+      "transformer_score": 0.992
+    },
+    {
+      "text": "ALERT: Your credit card ending 8832 was used for Rs 2,450 at BigBasket. If not you, call t",
+      "label": 0,
+      "transformer_score": 0.994
+    },
+    {
+      "text": "Hey, you still owe me 150 for the movie tickets last week, no rush though",
+      "label": 0,
+      "transformer_score": 0.004
+    },
+    {
+      "text": "Your electricity bill of Rs 1,860 for October is generated. Due date is 5th Nov. Pay via y",
+      "label": 0,
+      "transformer_score": 0.999
+    },
+    {
+      "text": "Mom here, I sent 1500 for your books. Tell me once it reaches.",
+      "label": 0,
+      "transformer_score": 0.002
+    },
+    {
+      "text": "Your OTP for Aadhaar authentication is 774120. Do not share it with anyone including UIDAI",
+      "label": 0,
+      "transformer_score": 0.997
+    },
+    {
+      "text": "Hey everyone, college fest committee is collecting 200 per person for the trip, pay to the",
+      "label": 0,
+      "transformer_score": 0.322
+    },
+    {
+      "text": "Your Amazon refund of Rs 649 for the returned headphones has been processed and will refle",
+      "label": 0,
+      "transformer_score": 0.997
+    }
+  ],
+  "Kaggle test accounts": {
+    "v2": {
+      "caught": 1.0,
+      "false_alarms": 0.0,
+      "n": 3000
+    },
+    "v3": {
+      "caught": 1.0,
+      "false_alarms": 0.0,
+      "n": 3000
+    },
+    "Transformer": {
+      "caught": 0.9943,
+      "false_alarms": 0.0,
+      "n": 3000
+    },
+    "Transformer + v2 rules": {
+      "caught": 1.0,
+      "false_alarms": 0.0,
+      "n": 3000
+    }
+  }
+}

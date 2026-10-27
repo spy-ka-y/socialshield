@@ -4,10 +4,10 @@
   "n_spam": 747,
   "A_transfer": {
     "ML model only": {
-      "accuracy": 0.8471,
-      "spam_caught": 0.1044,
-      "precision": 0.2989,
-      "f1": 0.1548,
+      "accuracy": 0.8473,
+      "spam_caught": 0.1058,
+      "precision": 0.3015,
+      "f1": 0.1566,
       "false_alarms": 0.0379
     },
     "Rules + ML (frozen)": {

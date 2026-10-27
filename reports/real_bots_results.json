@@ -1,0 +1,96 @@
+{
+  "n": 12737,
+  "groups": {
+    "fake_followers": 3351,
+    "genuine_accounts": 3474,
+    "social_spambots_1": 991,
+    "social_spambots_2": 3457,
+    "social_spambots_3": 464,
+    "traditional_spambots_1": 1000
+  },
+  "features": [
+    "account_age_days",
+    "followers_count",
+    "following_count",
+    "posts_count",
+    "follower_following_ratio",
+    "is_private",
+    "is_verified",
+    "profile_picture",
+    "profile_banner",
+    "has_bio",
+    "has_website",
+    "has_location",
+    "username_len",
+    "username_digit_ratio",
+    "username_has_official",
+    "favourites_count",
+    "listed_count",
+    "default_profile",
+    "geo_enabled",
+    "name_len"
+  ],
+  "A_transfer_from_kaggle": {
+    "accuracy": 0.2727,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "false_alarms": 0.0
+  },
+  "B_trained_on_real": {
+    "accuracy": 0.9867,
+    "precision": 0.9956,
+    "recall": 0.986,
+    "f1": 0.9908,
+    "false_alarms": 0.0115
+  },
+  "B_by_group": {
+    "genuine_accounts": 0.9885,
+    "social_spambots_1": 0.9596,
+    "social_spambots_2": 0.9928,
+    "social_spambots_3": 0.9677,
+    "traditional_spambots_1": 0.995,
+    "fake_followers": 0.9866
+  },
+  "B_feature_importance": {
+    "favourites_count": 0.3221,
+    "profile_banner": 0.2097,
+    "posts_count": 0.1515,
+    "follower_following_ratio": 0.0813,
+    "followers_count": 0.0709,
+    "geo_enabled": 0.0456,
+    "following_count": 0.0375,
+    "listed_count": 0.0243,
+    "account_age_days": 0.0219,
+    "has_bio": 0.0112
+  },
+  "B_shared_features_only": {
+    "accuracy": 0.9792,
+    "precision": 0.994,
+    "recall": 0.9773,
+    "f1": 0.9856,
+    "false_alarms": 0.0158
+  },
+  "C_unseen_bot_type": {
+    "social_spambots_1": {
+      "caught": 0.9435,
+      "false_alarms_on_genuine_test": 0.0115
+    },
+    "social_spambots_2": {
+      "caught": 0.5568,
+      "false_alarms_on_genuine_test": 0.0129
+    },
+    "social_spambots_3": {
+      "caught": 0.7931,
+      "false_alarms_on_genuine_test": 0.0101
+    },
+    "traditional_spambots_1": {
+      "caught": 0.986,
+      "false_alarms_on_genuine_test": 0.0115
+    },
+    "fake_followers": {
+      "caught": 0.9311,
+      "false_alarms_on_genuine_test": 0.0072
+    }
+  }
+}

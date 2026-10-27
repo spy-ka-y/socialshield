@@ -1011,6 +1011,26 @@ def real_world_check():
             f"real spam, but it almost never raises a false alarm. Trained on real SMS, it catches {real['ML (real-SMS-trained)']['spam_caught']:.0%}, "
             f"yet that model flags {t2['false_alarms']:.0%} of our genuine Indian DMs. There is no universal scam detector: "
             f"each platform has to train on its own messages, and about 200 real labelled examples already help a lot.")
+    v3r, tr_, t3r = report_json("v3_results.json"), report_json("transformer_results.json"), report_json("test3_results.json")
+    if v3r:
+        st.divider()
+        st.markdown("**🧠 Better models, same held-out tests** (scams caught / false alarms on genuine messages)")
+        fmt = lambda d: f"{d['caught']:.0%} / {d['false_alarms']:.0%}" if d else "not measured"  # noqa: E731
+        rows = {
+            "v2: rules + links + synthetic-trained model (in the app)": [
+                fmt(v3r["eval"]["Real SMS test split"]["v2"]), fmt(v3r["eval"]["Test 2 (unseen DMs)"]["v2"]), fmt(t3r["v2"] if t3r else None)],
+            "v3: + model trained on real SMS, layer weights learned": [
+                fmt(v3r["eval"]["Real SMS test split"]["v3"]), fmt(v3r["eval"]["Test 2 (unseen DMs)"]["v3"]), fmt(t3r["v3"] if t3r else None)],
+        }
+        if tr_:
+            rows["Transformer (multilingual DistilBERT, fine-tuned on Colab)"] = [
+                fmt(tr_["Real SMS test split"]["Transformer"]), fmt(tr_["Test 2 (unseen DMs)"]["Transformer"]), "not measured"]
+        st.dataframe(pd.DataFrame(rows, index=["Real SMS (1,115)", "Test 2: Indian DMs (30)", "Test 3: Indian messages (25)"]).T,
+                     use_container_width=True)
+        st.info("**Takeaway:** training on real messages lifts real SMS detection from 23% to 95% (v3) and 97% (transformer). "
+                "But on Indian messages the stronger models also flag many genuine bank alerts, OTPs and delivery updates, because "
+                "almost none were in their training data. The app therefore keeps v2, which raises the fewest false alarms; "
+                "the fix is a few hundred real, labelled Indian messages.")
     lr = report_json("link_results.json")
     if lr:
         st.divider()
@@ -1071,6 +1091,134 @@ def page_incidents():
                 incidents.clear()
                 st.cache_resource.clear()
                 st.rerun()
+
+
+# ================================================================ REAL TWITTER ACCOUNTS (Cresci-2017)
+@st.cache_resource
+def real_account_model():
+    p = ROOT / "models/real_account_model.joblib"
+    if not p.exists():
+        subprocess.run([sys.executable, str(ROOT / "src/real_bots_test.py")], cwd=ROOT, capture_output=True)
+    return joblib.load(p) if p.exists() else None
+
+
+@st.cache_data
+def real_examples():
+    """One real genuine account and one real social spambot from Cresci-2017, as starting examples."""
+    import real_bots_test as rb
+    d = rb.load()
+    m = real_account_model()["model"]
+    d["p"] = m.predict_proba(d[rb.REAL_FEATURES])[:, 1]
+    g = d[(d["group"] == "genuine_accounts") & (d["p"] < 0.1) & (d["has_bio"] == 1) & (d["followers_count"].between(150, 900))].iloc[0]
+    b = d[(d["group"] == "social_spambots_1") & (d["p"] > 0.9) & (d["has_bio"] == 1)].iloc[0]
+    return g.to_dict(), b.to_dict()
+
+
+PROFILE_NUM = [("followers_count", "Followers"), ("following_count", "Following"), ("posts_count", "Posts"),
+               ("favourites_count", "Posts they liked"), ("listed_count", "Lists they appear on"), ("account_age_days", "Account age (days)")]
+PROFILE_FLAGS = [("profile_picture", "Has a profile picture"), ("profile_banner", "Has a banner image"), ("has_bio", "Has a bio"),
+                 ("has_website", "Has a website link"), ("has_location", "Has a location"), ("default_profile", "Never changed the default look"),
+                 ("geo_enabled", "Location tagging on"), ("is_verified", "Verified"), ("is_private", "Private account")]
+READABLE_REAL = {"favourites_count": "Posts they liked", "profile_banner": "Banner image", "posts_count": "Posts",
+                 "follower_following_ratio": "Followers per account followed", "followers_count": "Followers",
+                 "geo_enabled": "Location tagging", "following_count": "Following", "account_age_days": "Account age (days)",
+                 "listed_count": "Lists they appear on", "has_bio": "Bio", "default_profile": "Default look", "name_len": "Display name length",
+                 "username_len": "Username length", "username_digit_ratio": "Digits in username", "profile_picture": "Profile picture"}
+
+
+def real_profile_checker():
+    rm = real_account_model()
+    if rm is None:
+        st.info("Real-account model not available. Run `python src/real_bots_test.py`.")
+        return
+    r = report_json("real_bots_results.json") or {}
+    st.markdown("<div class='intro'>A second account model trained on <b>12,737 real Twitter accounts</b> labelled by researchers "
+                "(Cresci et al., 2017): 3,474 genuine people and 9,263 bots. Enter what you can see on any profile, "
+                "or load a real example.</div>", unsafe_allow_html=True)
+    ss = st.session_state
+    gen, bot = real_examples()
+    b1, b2, _ = st.columns([1.3, 1.3, 1])
+    for col, ex, lab in ((b1, gen, "✅ Real genuine account"), (b2, bot, "🤖 Real social spambot")):
+        if col.button(lab, use_container_width=True):
+            for k, _l in PROFILE_NUM:
+                ss[f"rp_{k}"] = int(ex[k])
+            for k, _l in PROFILE_FLAGS:
+                ss[f"rp_{k}"] = bool(ex[k])
+            ss["rp_username_len"] = int(ex["username_len"])
+            ss["rp_digits"] = int(round(ex["username_digit_ratio"] * ex["username_len"]))
+    with st.form("real_profile", border=True):
+        cols = st.columns(3)
+        vals = {}
+        for i, (k, lab) in enumerate(PROFILE_NUM):
+            vals[k] = cols[i % 3].number_input(lab, min_value=0, step=1, key=f"rp_{k}")
+        cols = st.columns(3)
+        for i, (k, lab) in enumerate(PROFILE_FLAGS):
+            vals[k] = float(cols[i % 3].checkbox(lab, key=f"rp_{k}"))
+        c1, c2 = st.columns(2)
+        ulen = c1.number_input("Username length (characters)", min_value=1, max_value=30, step=1, key="rp_username_len")
+        digits = c2.number_input("Digits in the username", min_value=0, max_value=30, step=1, key="rp_digits")
+        go_ = st.form_submit_button("Check this profile", type="primary")
+    if not (go_ or any(ss.get(f"rp_{k}") for k, _ in PROFILE_NUM)):
+        st.caption("Load an example or fill in the numbers, then press Check this profile.")
+    else:
+        x = {k: float(v) for k, v in vals.items()}
+        x["follower_following_ratio"] = x["followers_count"] / (x["following_count"] + 1)
+        x["username_len"], x["username_digit_ratio"] = float(ulen), float(min(digits, ulen)) / float(ulen)
+        x["username_has_official"], x["name_len"] = 0.0, 12.0
+        X = pd.DataFrame([x])[rm["features"]]
+        p = float(rm["model"].predict_proba(X)[0, 1])
+        bot_ = p >= 0.5
+        c = "#e66767" if bot_ else COLORS[SAFE]
+        st.markdown(f"<div class='banner' style='background:{hexa(c, 0.16)}; border-left:5px solid {c};'>"
+                    f"<div><div class='t'>{'🤖 LOOKS LIKE A BOT' if bot_ else '✅ LOOKS GENUINE'}</div>"
+                    f"<div class='s'>Real-account model (Random Forest, trained on Cresci-2017)</div></div>"
+                    f"<div style='text-align:right'><div class='r'>{p:.0%}</div><div class='s'>bot probability</div></div></div>",
+                    unsafe_allow_html=True)
+        reasons = []
+        imp = pd.Series(rm["model"].feature_importances_, rm["features"]).sort_values(ascending=False)
+        for f in imp.index:
+            if f not in READABLE_REAL:
+                continue
+            g, b_ = rm["medians_genuine"][f], rm["medians_bot"][f]
+            if g == b_:
+                continue
+            closer_bot = abs(x[f] - b_) < abs(x[f] - g)
+            if closer_bot == bot_ and f in dict(PROFILE_FLAGS):
+                yn = lambda v: "yes" if v >= 0.5 else "no"  # noqa: E731
+                reasons.append(f"{READABLE_REAL[f]}: <b>{yn(x[f])}</b> (typical genuine: {yn(g)}, typical bot: {yn(b_)})")
+            elif closer_bot == bot_:
+                reasons.append(f"{READABLE_REAL[f]}: <b>{x[f]:,.0f}</b> (typical genuine: {g:,.0f}, typical bot: {b_:,.0f})"
+                               if f not in ("follower_following_ratio", "username_digit_ratio") else
+                               f"{READABLE_REAL[f]}: <b>{x[f]:.2f}</b> (typical genuine: {g:.2f}, typical bot: {b_:.2f})")
+            if len(reasons) == 3:
+                break
+        if reasons:
+            st.markdown("**Why:**<ul class='why'>" + "".join(f"<li>{t}</li>" for t in reasons) + "</ul>", unsafe_allow_html=True)
+    if r:
+        with st.expander("How well does this model work on real accounts?"):
+            b = r["B_trained_on_real"]
+            k = st.columns(3)
+            card(k[0], f"{b['accuracy']:.1%}", "accuracy on 2,548 real test accounts", T["primary"])
+            card(k[1], f"{b['false_alarms']:.1%}", "of genuine people wrongly flagged", COLORS[SAFE])
+            card(k[2], f"{r['A_transfer_from_kaggle']['recall']:.0%}", "of real bots caught by our Kaggle-trained model", "#e66767",
+                 "The model trained on the synthetic Kaggle data does not work on real accounts. Training on real accounts fixes it.")
+            st.write("")
+            unseen = pd.DataFrame(r["C_unseen_bot_type"]).T
+            import real_bots_test as rb
+            unseen.index = [rb.NAMES.get(i, i) for i in unseen.index]
+            st.markdown("**A kind of bot the model has never seen** (that group was left out of training):")
+            st.dataframe(unseen.assign(**{"Caught": unseen["caught"].map("{:.0%}".format)})[["Caught"]], use_container_width=True)
+            st.caption("Most real bots are caught even when their type was never seen in training. The app-promoting "
+                       "social spambots are the hardest: only about half are caught, because they imitate real users closely.")
+
+
+def page_fake_accounts():
+    st.title("👤 Fake accounts")
+    t1, t2 = st.tabs(["Accounts in our dataset", "Check a real profile (real Twitter data)"])
+    with t1:
+        embedded(page_accounts)
+    with t2:
+        real_profile_checker()
 
 
 # ================================================================ SIMPLE PAGES
@@ -1201,7 +1349,7 @@ def page_ask():
 P = {"home": st.Page(page_dashboard, title="Dashboard", icon="🛡️", default=True),
      "check": st.Page(page_check, title="Check a message", icon="🔍", url_path="check"),
      "feed": st.Page(page_feed, title="Live feed", icon="🚨", url_path="feed"),
-     "accounts": st.Page(page_accounts, title="Fake accounts", icon="👤", url_path="accounts"),
+     "accounts": st.Page(page_fake_accounts, title="Fake accounts", icon="👤", url_path="accounts"),
      "research": st.Page(page_research, title="Research", icon="🔬", url_path="research"),
      "ask": st.Page(page_ask, title="Ask SocialShield", icon="💬", url_path="ask")}
 nav = st.navigation(list(P.values()))

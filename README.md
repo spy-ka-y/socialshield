@@ -55,6 +55,9 @@ Open [notebooks/SocialShield_Training.ipynb](https://colab.research.google.com/g
 | `python src/evaluate_ai.py` | Rules + ML + local AI on the team-written DM tests (needs Ollama) |
 | `python src/real_data_test.py` | The detector on 5,574 REAL SMS messages, retraining and a learning curve |
 | `python src/message_evasion_test.py` | Obfuscation attacks on messages, with and without the normaliser |
+| `python src/real_bots_test.py` | Account model on 12,737 real Twitter accounts (Cresci-2017): transfer, retraining, unseen bot types |
+| `python src/train_v3.py` | v3: text model trained on real SMS too, layer weights learned from data |
+| `python src/test3_eval.py` | Test 3: 25 realistic Indian messages written after all models were built |
 | `python src/link_test.py <phishing_domains.txt> <top_domains.txt>` | Link checks on 10,000 real phishing domains and the 10,000 most popular real sites |
 
 Results are saved in `reports/` and shown on the app's Research page. The Live feed and the DM inbox can also switch
@@ -67,6 +70,8 @@ from the synthetic dataset to the 5,574 real SMS messages, with each message's t
 - `data/raw_user_profiles.csv`, `data/raw_user_activities.csv`: Kaggle "Fake Profile and Post Detection on Social Media" (synthetic).
 - `data/dm_messages.csv` (Test 1) and `data/dm_test2.csv` (Test 2, unseen): team-written DM test sets (`text,label`). Used only for testing, never for training.
 - `data/external/phishing_domains.txt.gz`: active phishing domains from Phishing.Database (github.com/mitchellkrogza/Phishing.Database), downloaded 27 Oct 2026, with 13 popular legitimate sites removed.
+- `data/external/cresci2017/`: profile tables (users.csv) of the Cresci-2017 dataset (Cresci et al., WWW 2017): 3,474 genuine accounts and 9,263 bots, real Twitter accounts used only for the real-account model and its tests.
+- `data/test3_realistic.csv`: Test 3, 25 realistic Indian messages written by the team (marked synthetic in the file).
 - `data/external/sms.tsv`: UCI SMS Spam Collection (Almeida, Gomez Hidalgo and Yamakami, 2011; CC BY 4.0), real messages used only for the real-world check.
 - DMs and spread paths are simulated because the dataset has neither. Share counts are real.
 - `account_type` and `content_type` are never used as features because they reveal the label.

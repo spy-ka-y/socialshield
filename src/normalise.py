@@ -62,7 +62,12 @@ def normalise(text: str):
         tricks.append("split-up letters")
     s = joined
 
-    deleeted = LEET_TOKEN.sub(lambda m: _deleet(m.group(0)), s)
+    def deleet_in_place(m):
+        tok, before, after = m.group(0), s[m.start() - 1:m.start()], s[m.end():m.end() + 1]
+        if "@" in tok and (before == "." or after == "."):
+            return tok   # part of an email address or UPI ID (rahul.k@okicici, @www.swiggy.com), not leetspeak
+        return _deleet(tok)
+    deleeted = LEET_TOKEN.sub(deleet_in_place, s)
     if deleeted != s:
         tricks.append("numbers or symbols in place of letters")
     s = deleeted

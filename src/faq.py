@@ -43,8 +43,8 @@ FAQ = [
     ("Training", "Which dataset did you use?", "data dataset kaggle source accounts posts csv",
      "The Kaggle dataset **Fake Profile and Post Detection on Social Media**: **5,000 accounts** (3,751 genuine, "
      "1,249 fake) and **131,284 posts**, each already labelled. For honest testing we also used **5,574 real SMS "
-     "messages** (UCI SMS Spam Collection), **92 messages written by our team**, and **392,151 real phishing domains** "
-     "(Phishing.Database). None of the test data was used for training."),
+     "messages** (UCI SMS Spam Collection), **117 messages written by our team** (Tests 1 to 3), **392,151 real phishing domains** "
+     "(Phishing.Database) and **12,737 real Twitter accounts** (Cresci-2017). None of the test data was used for training."),
     ("Training", "How did you train the account model?", "train account model random forest features how learned fake account",
      "1. Each account is turned into **32 numbers**: account age, followers, following, posts per day, posting at "
      "night, repeated posts, links per post and so on.\n2. The data is split: **4,000 accounts** to learn from, "
@@ -70,9 +70,22 @@ FAQ = [
 
     ("Results", "How accurate is it?", "accuracy results score performance percent how good",
      "On the Kaggle test data: **100%** for accounts and messages. That number is real but misleading, because the "
-     "dataset is synthetic. On harder tests:\n\n* **30 unseen team-written messages:** 50% of attacks caught, 17% false "
-     "alarms (56% with the link checker)\n* **5,574 real SMS:** 23% of spam caught, only 0.3% false alarms\n* **Same "
-     "design retrained on real SMS:** 95% caught, 0.3% false alarms"),
+     "dataset is synthetic. On harder, held-out tests:\n\n* **Real Twitter accounts (Cresci-2017):** 98.7% accuracy, 1.2% "
+     "false alarms, with a model trained on real accounts\n* **5,574 real SMS:** 23% caught by the app's detector, 95% by v3 "
+     "and 97% by a fine-tuned transformer, all with under 1% false alarms\n* **Indian messages we wrote (Test 2 and 3):** "
+     "the app's detector catches 40 to 56% with 17 to 20% false alarms; the stronger models catch 80 to 94% but raise far "
+     "more false alarms on bank alerts and OTPs"),
+    ("Results", "Does it work on real bot accounts?", "real bots twitter cresci accounts real data account model real world",
+     "Yes, once it learns from real accounts. We used **Cresci-2017**: 12,737 real Twitter accounts labelled by researchers "
+     "(3,474 genuine, 9,263 bots of five kinds). A Random Forest on profile data reached **98.7% accuracy with 1.2% false "
+     "alarms**. Our Kaggle-trained model caught **0%** of these real bots, because real accounts look nothing like the "
+     "synthetic ones. Even a kind of bot it never saw in training was mostly caught (56% to 99% depending on the kind). "
+     "Try it on the **Fake accounts** page, tab *Check a real profile*."),
+    ("Results", "Did a bigger AI model help?", "transformer bert distilbert deep learning bigger model colab v3 better model",
+     "We fine-tuned a **multilingual transformer** (DistilBERT) on Google Colab and also built **v3**, which learns from real "
+     "SMS and learns how to weigh each layer. On real SMS they catch **97%** and **95%** (the app: 23%). But on Indian messages "
+     "they flag 42 to 58% of genuine bank alerts, OTPs and delivery updates, because almost none were in their training data. "
+     "So the app keeps the cautious detector, and the fix is clear: a few hundred real, labelled Indian messages."),
     ("Results", "Why is the accuracy 100%? Isn't that suspicious?", "100 percent suspicious too good overfitting synthetic perfect",
      "Yes, and we say so. The dataset is **synthetic** (computer-generated): fake accounts are on average 39 days old, "
      "genuine ones 874, so they barely overlap and any model separates them. That is why we tested on real SMS, on "
@@ -119,17 +132,17 @@ FAQ = [
      "money. So it is **off by default**, and by design it can add an alert but never remove one, because an attacker "
      "could try to talk an AI into saying *safe* (prompt injection)."),
     ("How it works", "What is real and what is simulated?", "real simulated fake data honest what is real",
-     "**Real:** the trained models, the share counts, the 5,574 real SMS, the 392,151 real phishing domains, and the "
-     "92 messages our team wrote. **Simulated:** the dataset itself (synthetic), DMs as a channel, who-shared-from-whom "
+     "**Real:** the trained models, the share counts, the 5,574 real SMS, the 392,151 real phishing domains and the "
+     "12,737 real Twitter accounts. **Written by us to look realistic:** the 117 test messages (Tests 1 to 3). **Simulated:** the dataset itself (synthetic), DMs as a channel, who-shared-from-whom "
      "in the spread network, and the effect of Block and Quarantine."),
 
     ("Future", "How could the accuracy be improved?", "improve improvement accuracy better future work increase next steps",
-     "1. **Train on real labelled messages from Indian platforms.** Our learning curve shows even a few hundred real "
-     "examples lift detection from 23% to about 89%.\n2. **Use a multilingual language model** (for example a "
-     "fine-tuned multilingual BERT) to understand meaning and Hindi or Hinglish, not just keywords.\n3. **Learn from "
-     "analysts:** every *Not a threat* click becomes a new training example.\n4. **Add signals scammers cannot fake "
-     "cheaply:** device fingerprints, IP reputation, and how accounts connect to each other.\n5. **Check where links "
-     "really lead:** follow redirects and look at domain age, not just the address."),
+     "We already tried the main ideas and measured them: training on real SMS (23% to 95%), a fine-tuned transformer "
+     "(97%), learned layer weights (v3), and an account model trained on real Twitter bots (98.7%). What is still missing:\n\n"
+     "1. **Real, labelled Indian messages**, especially genuine bank alerts, OTPs and delivery updates. Every stronger model "
+     "failed on exactly these.\n2. **Learning from analysts:** every *Not a threat* click becomes a training example.\n3. "
+     "**Signals scammers cannot fake cheaply:** domain age, where links really lead, device and network patterns.\n4. **A "
+     "multilingual model for Hindi and Hinglish** trained on that Indian data."),
 ]
 
 

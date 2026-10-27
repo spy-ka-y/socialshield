@@ -1,0 +1,26 @@
+text,label,person,channel,source
+"Rs 2,340.00 debited from A/c XX4417 on 27-Oct-26 to VPA zomato.payu@axisbank. UPI Ref 430219887612. Not you? Report it from your bank app immediately.",genuine,P,SMS,synthetic
+"Dear Customer, INR 8,000.00 credited to your A/c XX4417 on 27-Oct-26 by NEFT from ACME DIGITAL PVT LTD (Stipend Oct). Avl Bal: INR 11,206.45",genuine,Y,SMS,synthetic
+"OTP 552901 for your transaction of Rs 1,499.00 at MYNTRA on card ending 0921. Valid for 5 mins. Do not share this OTP with anyone.",genuine,S,SMS,synthetic
+"4821 is your Swiggy login OTP. Do not share it with anyone. @www.swiggy.com #4821",genuine,P,SMS,synthetic
+"Your Delhivery shipment is out for delivery today. Share OTP 6603 with the delivery agent only after you receive the package.",genuine,Y,SMS,synthetic
+"Ekart: We tried to deliver your Flipkart order today but couldn't reach you. We will try again tomorrow. You can reschedule from the Flipkart app.",genuine,S,SMS,synthetic
+"Beta papa ne 5000 bheje hai, check karke batana. Aur exam form ki last date kya hai?",genuine,P,WhatsApp,synthetic
+"yo can you send 450 for the cab, I paid the whole thing. gpay is same number",genuine,Y,WhatsApp,synthetic
+"hey this is kavya, my phone got stolen so using this number for now. don't reply on the old one. also do you have the CN assignment pdf?",genuine,S,WhatsApp,synthetic
+"All TY students: exam form fee payment on the student portal closes Friday 5 pm. Late fee of Rs 500 applies after that. Pay only through the portal, not to any individual.",genuine,P,WhatsApp,synthetic
+"Fest committee: everyone please pay 350 for the event t-shirt to Aarav (treasurer) by Thursday and drop the screenshot in this group.",genuine,Y,WhatsApp,synthetic
+"lol saw your story, are you still selling the concert tickets? i can do 1200 for one, upi ok?",genuine,S,Instagram DM,synthetic
+"New sign-in to your Google Account on a Windows device near Mumbai. If this was you, you don't need to do anything. If not, check your account activity in your Google Account settings.",genuine,P,Email,synthetic
+"Dear Customer, your periodic KYC update is due. Please visit your home branch or update through the official mobile banking app. We never ask for KYC details over calls or links.",genuine,Y,SMS,synthetic
+"Your student portal password was changed successfully on 27 Oct 2026 at 10:42 PM. If you did not make this change, please contact the IT helpdesk on campus.",genuine,S,Email,synthetic
+"Dear Cardholder, your 4,820 reward points expire on 31-Oct-26. Redeem them for vouchers before they lapse: rewards-hdfcbank.in/redeem",scam,P,SMS,synthetic
+"Hi, I'm Neha from the talent team at a consulting firm. We found your profile on Naukri and have a flexible remote role, 1 to 2 hours daily, paying Rs 2,500 to 6,000 per day. Can I share the details here?",scam,Y,WhatsApp,synthetic
+"Dear Student, your college mailbox has reached 98% of its storage quota and incoming mail will soon be rejected. Please re-validate your account to get extra storage: portal-mailquota.com/student",scam,S,Email,synthetic
+"Hey! We love your feed 😍 We're a homegrown skincare brand looking for campus ambassadors. You'd get free products and 20% commission on sales. You just cover shipping of Rs 349 for the starter kit. Interested?",scam,P,Instagram DM,synthetic
+"PhonePe: You have received a cashback of Rs 2,000. Approve the request in your app and enter your UPI PIN to add it to your bank account.",scam,Y,SMS,synthetic
+"Hi, sorry for the late reply. Is this still Rohan's number? We met at the workshop in Pune last month.",scam,S,WhatsApp,synthetic
+"Your Adobe Creative Cloud annual plan has been renewed and Rs 18,499 charged to your card. If you did not authorise this renewal, call our billing support at +91 80XXXXXXXX within 24 hours for a full refund.",scam,P,Email,synthetic
+"heyy can you vote for me in this brand ambassador contest? 🙏 you just log in with your insta on the page, takes like 10 sec: insta-vote-contest.com/r/aditi",scam,Y,Instagram DM,synthetic
+"Bhai sorry, I sent 5000 to your number on GPay by mistake, it was meant for my brother's college fees. Can you please send it back? I'm attaching the screenshot.",scam,S,WhatsApp,synthetic
+"Your Amazon Pay balance of Rs 1,250 expires on 30 Oct. Use it before it lapses: amazon.in-pay.co/claim",scam,P,SMS,synthetic

@@ -220,7 +220,10 @@ def url_risk(findings):
 
 def find_links(text: str):
     links = []
-    for m in URL_RE.finditer(str(text)):
+    text = str(text)
+    for m in URL_RE.finditer(text):
+        if text[m.end():m.end() + 1] == "@":
+            continue   # the name part of a UPI ID or email address (zomato.payu@axisbank), not a website
         u = m.group(1).rstrip(".,;:!?)'\"")
         h = host_of(u)
         tld = h.rsplit(".", 1)[-1] if "." in h else ""
