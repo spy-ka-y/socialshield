@@ -8,7 +8,10 @@ spam, misinformation, impersonation, adult scams), lets an analyst respond to ev
 models hold up when attackers adapt.
 
 ## Detection layers
-1. **Signature rules**: 20 known scam patterns (like antivirus or IDS signatures).
+0. **Normaliser**: undoes evasion tricks (invisible characters, look-alike letters, leetspeak,
+   spaced or dotted letters, disguised links) before anything else reads the message,
+   like traffic normalisation in an IDS. Hiding words is itself treated as a warning sign.
+1. **Signature rules**: 37 known scam patterns (like antivirus or IDS signatures).
 2. **Message ML model**: TF-IDF + Logistic Regression trained on 131,284 posts.
 3. **Account model**: Random Forest on profile and behaviour features, plus an attack-type model.
 4. **Optional local AI second opinion**: a small language model run locally with Ollama
@@ -28,11 +31,22 @@ streamlit run app.py
 On first start the app trains its models automatically (about 2 minutes).
 The AI layer is skipped when Ollama is not available, for example on Streamlit Cloud.
 
+## Research experiments
+| Script | What it measures |
+|---|---|
+| `python src/evaluate.py` | Feature removal and account evasion (fake accounts imitating real users) |
+| `python src/evaluate_ai.py` | Rules + ML + local AI on the team-written DM tests (needs Ollama) |
+| `python src/real_data_test.py` | The detector on 5,574 REAL SMS messages, retraining and a learning curve |
+| `python src/message_evasion_test.py` | Obfuscation attacks on messages, with and without the normaliser |
+
+Results are saved in `reports/` and shown in the app's Evasion Lab.
+
 ## Change the colour theme
 `python src/set_theme.py light` (or `midnight`, `terminal`, `slate`), then restart the app.
 
 ## Data
 - `data/raw_user_profiles.csv`, `data/raw_user_activities.csv`: Kaggle "Fake Profile and Post Detection on Social Media" (synthetic).
-- `data/dm_messages.csv`: team-written DM test set (`text,label`). Used only for testing, never for training.
+- `data/dm_messages.csv` (Test 1) and `data/dm_test2.csv` (Test 2, unseen): team-written DM test sets (`text,label`). Used only for testing, never for training.
+- `data/external/sms.tsv`: UCI SMS Spam Collection (Almeida, Gomez Hidalgo and Yamakami, 2011; CC BY 4.0), real messages used only for the real-world check.
 - DMs and spread paths are simulated because the dataset has neither. Share counts are real.
 - `account_type` and `content_type` are never used as features because they reveal the label.

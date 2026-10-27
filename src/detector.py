@@ -20,6 +20,7 @@ from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from features import clean_text  # noqa: E402
+from normalise import normalise  # noqa: E402
 
 SAFE = "Safe"
 
@@ -118,6 +119,7 @@ BENIGN = [
     ("OK-04", 0.3, r"\bpay me back\b|\byou (still )?owe me\b", "A friend asking to be paid back"),
 ]
 BENIGN_COMPILED = [(rid, w, re.compile(rx, re.I), why) for rid, w, rx, why in BENIGN]
+EVASION_WEIGHT = 0.15  # amplifier added when the normaliser had to undo hidden-character tricks
 ML_ONLY_THRESHOLD = 0.8  # with no rule match, the ML model alone must be at least this sure
 
 ATTACK_INFO = {
@@ -163,10 +165,13 @@ class Verdict:
     rule_hits: list = field(default_factory=list)   # dicts: id, category, why, matches
     ml_words: list = field(default_factory=list)    # words the ML model weighted most
     info: dict = field(default_factory=dict)
+    evasion: list = field(default_factory=list)     # evasion tricks undone by the normaliser
+    decoded: str = ""                               # the normalised text the detector actually read
 
 
 class MessageDetector:
-    def __init__(self, model_path=ROOT / "models/post_model.joblib"):
+    def __init__(self, model_path=ROOT / "models/post_model.joblib", normalise_input=True):
+        self.normalise_input = normalise_input  # False = no evasion defence (used to measure the attacks)
         bundle = joblib.load(model_path)
         self.model = bundle["model"]
         self.classes = list(self.model.classes_)
@@ -200,19 +205,29 @@ class MessageDetector:
         # Hide placeholder tokens and words like "is", "my" that carry no meaning for a reader.
         return "token" in term or all(w in ENGLISH_STOP_WORDS or len(w) < 3 for w in term.split())
 
+    def _prepare(self, text):
+        """Undo evasion tricks first (like IDS traffic normalisation). Returns (text to analyse, tricks)."""
+        return normalise(text) if self.normalise_input else (str(text), [])
+
     def analyze(self, text: str, channel: str = "dm") -> Verdict:
         """channel: "dm" for private messages and scanned text, "post" for public posts."""
-        return self._combine(text, dict(zip(self.classes, self.model.predict_proba([text])[0])), channel)
+        clean, tricks = self._prepare(text)
+        return self._combine(clean, dict(zip(self.classes, self.model.predict_proba([clean])[0])), channel, tricks)
 
     def analyze_many(self, texts, channel: str = "dm") -> list:
         """Score many messages at once (one batched ML call, then rules per message)."""
-        texts = list(texts)
-        probs = self.model.predict_proba(texts)
-        return [self._combine(t, dict(zip(self.classes, p)), channel) for t, p in zip(texts, probs)]
+        prepared = [self._prepare(t) for t in texts]
+        probs = self.model.predict_proba([c for c, _ in prepared])
+        return [self._combine(c, dict(zip(self.classes, p)), channel, tr) for (c, tr), p in zip(prepared, probs)]
 
-    def _combine(self, text: str, probs: dict, channel: str = "dm") -> Verdict:
+    def _combine(self, text: str, probs: dict, channel: str = "dm", tricks=()) -> Verdict:
         ml_label = max(probs, key=probs.get)
         hits = self._rules(text, channel)
+        hidden = [t for t in tricks if t != "split-up letters"]
+        if hidden:
+            # Hiding words from a filter is itself a warning sign. Amplifier only: it never raises an alert alone.
+            hits.append({"id": "EV-01", "category": None, "weight": EVASION_WEIGHT,
+                         "why": "Disguises words to slip past filters", "matches": hidden})
 
         # Score each attack category: ML probability plus the weight of matching rules, minus benign signs.
         amplifier = sum(h["weight"] for h in hits if h["category"] is None)
@@ -235,7 +250,7 @@ class MessageDetector:
             label=label, risk=round(float(risk), 3), ml_label=ml_label,
             ml_probs={k: round(float(v), 3) for k, v in probs.items()},
             rule_hits=hits, ml_words=self._top_words(text, best),
-            info=ATTACK_INFO.get(label, {}),
+            info=ATTACK_INFO.get(label, {}), evasion=list(tricks), decoded=text if tricks else "",
         )
 
 

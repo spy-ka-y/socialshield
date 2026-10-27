@@ -9,6 +9,7 @@ import json
 import subprocess
 import sys
 import time
+import unicodedata
 from dataclasses import replace
 from pathlib import Path
 
@@ -26,6 +27,8 @@ from spread import cascade_stats, reach_over_time, simulate_cascade  # noqa: E40
 import themes  # noqa: E402
 import incidents  # noqa: E402
 import ai_layer  # noqa: E402
+import normalise  # noqa: E402
+import obfuscate  # noqa: E402
 
 st.set_page_config(page_title="SocialShield", page_icon="🛡️", layout="wide")
 T = themes.active()
@@ -280,7 +283,13 @@ def respond_panel(key):
 def verdict_view(text, v, sender_id=None, by="Hybrid detector", ai=None, incident_key=None):
     sub = "Detected by: signature rules + ML model" if by == "Hybrid detector" else f"Detected by: {by}"
     banner(v.label, v.risk, sub)
-    st.markdown(highlighted(text, v), unsafe_allow_html=True)
+    if v.evasion:   # show the hidden tricks instead of rule highlights (matches are on the decoded text)
+        st.markdown(f"<div class='msg'>{show_invisible(text)}</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(highlighted(text, v), unsafe_allow_html=True)
+    if v.evasion:
+        st.markdown(f"<span class='small'>🔤 <b>Disguised text decoded</b> ({html.escape(', '.join(v.evasion))}): "
+                    f"{html.escape(v.decoded)}</span>", unsafe_allow_html=True)
     ai_box(ai)
     if v.label == SAFE and v.rule_hits:
         st.markdown(f"<span class='small'>Some warning signs were found (highlighted): "
@@ -770,8 +779,19 @@ def evasion_curve(changed):
 
 
 def page_evasion():
-    intro("🧪 Evasion lab", "Attackers adapt. Drag the slider to make fake accounts behave more like a typical genuine "
-          "user, and watch how many the model still catches.")
+    intro("🧪 Evasion lab", "Attackers adapt. Test how SocialShield holds up when fake accounts imitate real users, "
+          "when scammers disguise their words, and when it meets real messages it was never trained on.")
+    t1, t2, t3 = st.tabs(["🎭 Fake accounts imitate users", "🔤 Scammers disguise words", "🌍 Real-world check"])
+    with t1:
+        evasion_accounts()
+    with t2:
+        evasion_messages()
+    with t3:
+        real_world_check()
+
+
+def evasion_accounts():
+    st.caption("Drag the slider to make fake accounts behave more like a typical genuine user, and watch how many the model still catches.")
     with st.expander("Choose what the attacker changes"):
         changed = st.multiselect("Features", list(MIMICABLE), default=list(MIMICABLE), format_func=MIMICABLE.get,
                                  label_visibility="collapsed")
@@ -799,6 +819,114 @@ def page_evasion():
     st.info("**Takeaway:** perfect against careless bots, but detection collapses once bots copy genuine behaviour. "
             "Real platforms respond by retraining on new attacks and adding signals that are hard to fake, "
             "such as device fingerprints and network-level patterns.")
+
+
+EVASION_EXAMPLES = [
+    "Your Netflix payment failed. Update your card details here to keep watching: netflix-billing.top",
+    "Hi, this is your HOD. I'm in a meeting. Buy 3 Google Play gift cards of Rs 2000 each urgently, I will reimburse you.",
+    "Congratulations! You won Rs 25,00,000 in the KBC lucky draw. Pay Rs 8,500 processing fee to claim your prize.",
+    "Your SBI account will be blocked today. Share the OTP sent to your phone to verify your KYC.",
+]
+
+
+def show_invisible(text):
+    """Make hidden characters visible for the demo: invisible ones as a red dot, look-alike letters underlined."""
+    out = []
+    for ch in str(text):
+        if unicodedata.category(ch) == "Cf":
+            out.append("<span style='color:#e34948;font-weight:700'>·</span>")
+        elif normalise.CONF_RE.match(ch):
+            out.append(f"<u style='text-decoration-color:#e34948;text-decoration-thickness:2px'>{html.escape(ch)}</u>")
+        else:
+            out.append(html.escape(ch))
+    return "".join(out)
+
+
+@st.cache_resource
+def undefended_detector():
+    return MessageDetector(ROOT / "models/post_model.joblib", normalise_input=False)
+
+
+def mini_verdict(col, title, v):
+    c = COLORS.get(v.label, T["primary"]) if v.label != SAFE else "#e66767"
+    word = "CAUGHT: " + v.label if v.label != SAFE else "MISSED: looks safe"
+    col.markdown(f"<div class='msg' style='border-left:5px solid {c};'><b>{title}</b><br>"
+                 f"<span style='font-size:1.15em;font-weight:700;color:{c}'>{word}</span> "
+                 f"<span class='small'>(risk {v.risk:.0%})</span></div>", unsafe_allow_html=True)
+
+
+def evasion_messages():
+    st.caption("Scammers change how words LOOK to a filter while keeping them readable for people. SocialShield "
+               "normalises every message first (like an intrusion detection system normalising traffic), "
+               "so the rules and the model read the real words.")
+    a, b = st.columns([3, 2])
+    base = a.selectbox("Scam message", EVASION_EXAMPLES)
+    attack = b.selectbox("Evasion trick", list(obfuscate.ATTACKS), index=list(obfuscate.ATTACKS).index("All tricks combined"))
+    ev = obfuscate.ATTACKS[attack](base, seed=0)
+    st.markdown("**What the victim sees** <span class='small'>(red dots = invisible characters, underlined = "
+                "look-alike letters from another alphabet)</span>", unsafe_allow_html=True)
+    st.markdown(f"<div class='msg'>{show_invisible(ev)}</div>", unsafe_allow_html=True)
+    off, on = undefended_detector().analyze(ev), detector().analyze(ev)
+    c1, c2 = st.columns(2)
+    mini_verdict(c1, "Without the defence", off)
+    mini_verdict(c2, "With the normaliser", on)
+    if on.evasion:
+        st.markdown(f"<span class='small'><b>Tricks found:</b> {html.escape(', '.join(on.evasion))}. "
+                    f"<b>Decoded text:</b> {html.escape(on.decoded)}</span>", unsafe_allow_html=True)
+    res = report_json("message_evasion_results.json")
+    if res:
+        st.divider()
+        r = res["corpora"]["Team-written DMs"]
+        att = res["attacks"]
+        fig = go.Figure()
+        fig.add_trace(go.Bar(y=att, x=[100 * r[x]["no_defence"] for x in att], orientation="h", name="Without defence",
+                             marker_color="#e66767", text=[f"{100 * r[x]['no_defence']:.0f}%" for x in att], textposition="outside"))
+        fig.add_trace(go.Bar(y=att, x=[100 * r[x]["with_defence"] for x in att], orientation="h", name="With normaliser",
+                             marker_color="#2e9e5b", text=[f"{100 * r[x]['with_defence']:.0f}%" for x in att], textposition="outside"))
+        fig.update_layout(title=f"Measured on {r['n_attacked']} team-written scam DMs (3 runs each)", barmode="group",
+                          xaxis_title="Attacks still caught (%)", xaxis_range=[0, 115], yaxis=dict(autorange="reversed"),
+                          legend=dict(orientation="h", y=-0.2))
+        st.plotly_chart(fig_style(fig, 420), use_container_width=True)
+        g = r["genuine_false_alarms"]
+        st.info(f"**Takeaway:** invisible characters cut detection to {100 * r['Invisible characters']['no_defence']:.0f}% and "
+                f"look-alike letters to {100 * r['Look-alike letters (Cyrillic)']['no_defence']:.0f}%; the normaliser restores both to 100%. "
+                f"It adds no false alarms on clean genuine messages. Weak spot: when two neighbouring words are both spaced out, "
+                f"the boundary between them is lost, so spaced letters recover only to {100 * r['Spaced letters (p a y)']['with_defence']:.0f}%.")
+
+
+@st.cache_data
+def report_json(name):
+    p = ROOT / "reports" / name
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+
+def real_world_check():
+    r = report_json("real_data_results.json")
+    if not r:
+        st.info("Run `python src/real_data_test.py` to add the real-world check.")
+        return
+    st.caption(f"The models were trained on synthetic data. Here they meet {r['n']:,} REAL text messages "
+               f"(UCI SMS Spam Collection, {r['n_spam']} spam) that they were never built for.")
+    real = r["D_cross_domain"]["Real SMS test split (1,115)"]
+    a = r["A_transfer"]["Rules + ML (frozen)"]
+    k = st.columns(3)
+    card(k[0], f"{a['spam_caught']:.0%}", "real spam caught by SocialShield as built", "#e66767",
+         "Rules + ML trained on synthetic data, unchanged, on all real messages.")
+    card(k[1], f"{a['false_alarms']:.1%}", "false alarms on real genuine messages", COLORS[SAFE])
+    card(k[2], f"{real['ML (real-SMS-trained)']['spam_caught']:.0%}", "caught after retraining the same design on real data", T["primary"],
+         f"Trained on 80% of the real messages, tested on the other 20%. False alarms {real['ML (real-SMS-trained)']['false_alarms']:.1%}.")
+    cv = r["C_learning_curve"]
+    fig = go.Figure(go.Scatter(x=[p["n_train"] for p in cv], y=[100 * p["f1"] for p in cv], mode="lines+markers",
+                               line=dict(color=T["primary"], width=2.5), hovertemplate="%{x} messages: F1 %{y:.0f}<extra></extra>"))
+    fig.update_xaxes(tickvals=[p["n_train"] for p in cv], ticktext=[f"{p['n_train']:,}" for p in cv])
+    fig.update_layout(title="F1-score vs number of real labelled messages used for training", xaxis_type="log",
+                      xaxis_title="Real labelled messages (log scale)", yaxis_title="F1-score (x100)", yaxis_range=[0, 105])
+    st.plotly_chart(fig_style(fig, 330), use_container_width=True)
+    t2 = r["D_cross_domain"]["Test 2 (30 DMs, unseen)"]["ML (real-SMS-trained)"]
+    st.info(f"**Takeaway:** a model is only as good as the data it learned from. Trained on synthetic posts, SocialShield misses most "
+            f"real spam, but it almost never raises a false alarm. Trained on real SMS, it catches {real['ML (real-SMS-trained)']['spam_caught']:.0%}, "
+            f"yet that model flags {t2['false_alarms']:.0%} of our genuine Indian DMs. There is no universal scam detector: "
+            f"each platform has to train on its own messages, and about 200 real labelled examples already help a lot.")
 
 
 def page_incidents():

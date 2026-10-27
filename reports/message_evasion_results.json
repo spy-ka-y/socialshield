@@ -1,0 +1,189 @@
+{
+  "attacks": [
+    "Leetspeak (0TP, p@y)",
+    "Spaced letters (p a y)",
+    "Punctuation (v.e.r.i.f.y)",
+    "Look-alike letters (Cyrillic)",
+    "Invisible characters",
+    "Disguised links (bit[.]ly)",
+    "All tricks combined"
+  ],
+  "corpora": {
+    "Team-written DMs": {
+      "n_attacked": 47,
+      "Leetspeak (0TP, p@y)": {
+        "no_defence": 0.4184,
+        "with_defence": 0.9007
+      },
+      "Spaced letters (p a y)": {
+        "no_defence": 0.3688,
+        "with_defence": 0.7021
+      },
+      "Punctuation (v.e.r.i.f.y)": {
+        "no_defence": 0.3759,
+        "with_defence": 0.8014
+      },
+      "Look-alike letters (Cyrillic)": {
+        "no_defence": 0.1844,
+        "with_defence": 1.0
+      },
+      "Invisible characters": {
+        "no_defence": 0.0922,
+        "with_defence": 1.0
+      },
+      "Disguised links (bit[.]ly)": {
+        "no_defence": 0.9787,
+        "with_defence": 1.0
+      },
+      "All tricks combined": {
+        "no_defence": 0.1206,
+        "with_defence": 0.9149
+      },
+      "genuine_false_alarms": {
+        "no_defence": 0.0588,
+        "with_defence": 0.0588,
+        "n": 34
+      }
+    },
+    "Kaggle attack posts": {
+      "n_attacked": 269,
+      "Leetspeak (0TP, p@y)": {
+        "no_defence": 0.8823,
+        "with_defence": 0.9988
+      },
+      "Spaced letters (p a y)": {
+        "no_defence": 0.9517,
+        "with_defence": 0.9988
+      },
+      "Punctuation (v.e.r.i.f.y)": {
+        "no_defence": 0.9467,
+        "with_defence": 0.9938
+      },
+      "Look-alike letters (Cyrillic)": {
+        "no_defence": 0.9021,
+        "with_defence": 1.0
+      },
+      "Invisible characters": {
+        "no_defence": 0.6506,
+        "with_defence": 1.0
+      },
+      "Disguised links (bit[.]ly)": {
+        "no_defence": 1.0,
+        "with_defence": 1.0
+      },
+      "All tricks combined": {
+        "no_defence": 0.5105,
+        "with_defence": 1.0
+      },
+      "genuine_false_alarms": {
+        "no_defence": 0.0,
+        "with_defence": 0.0,
+        "n": 1000
+      }
+    },
+    "Real SMS spam": {
+      "n_attacked": 171,
+      "Leetspeak (0TP, p@y)": {
+        "no_defence": 0.386,
+        "with_defence": 0.9298
+      },
+      "Spaced letters (p a y)": {
+        "no_defence": 0.4172,
+        "with_defence": 0.8109
+      },
+      "Punctuation (v.e.r.i.f.y)": {
+        "no_defence": 0.4483,
+        "with_defence": 0.8947
+      },
+      "Look-alike letters (Cyrillic)": {
+        "no_defence": 0.3821,
+        "with_defence": 1.0
+      },
+      "Invisible characters": {
+        "no_defence": 0.1501,
+        "with_defence": 1.0
+      },
+      "Disguised links (bit[.]ly)": {
+        "no_defence": 0.8655,
+        "with_defence": 1.0
+      },
+      "All tricks combined": {
+        "no_defence": 0.1423,
+        "with_defence": 0.9357
+      },
+      "genuine_false_alarms": {
+        "no_defence": 0.0029,
+        "with_defence": 0.0029,
+        "n": 4827
+      }
+    }
+  },
+  "examples": [
+    {
+      "attack": "Look-alike letters (Cyrillic)",
+      "original": "Your Netflix payment failed. Update your card details here to keep watching: netflx-billing.top",
+      "evasive": "Your Nеtflіх pауmеnt failed. Update your card dеtaіls here to keеp wаtсhing: netflх-billing.toр",
+      "no_defence": "Safe",
+      "with_defence": "Phishing",
+      "tricks_found": [
+        "look-alike letters"
+      ]
+    },
+    {
+      "attack": "Invisible characters",
+      "original": "Your Netflix payment failed. Update your card details here to keep watching: netflx-billing.top",
+      "evasive": "Your N​e​t​f​l​i​x p​a​y​m​e​n​t f​a​i​l​e​d. U​p​d​a​t​e y​o​u​r c​a​r​d d​e​t​a​i​l​s h​e​r​e to k​e​e​p watching: n​e​t​f​l​x-b​i​l​l​i​n​g.t​o​p",
+      "no_defence": "Safe",
+      "with_defence": "Phishing",
+      "tricks_found": [
+        "invisible characters"
+      ]
+    },
+    {
+      "attack": "All tricks combined",
+      "original": "Your Netflix payment failed. Update your card details here to keep watching: netflx-billing.top",
+      "evasive": "Your Netflіx рaуm​e​n​t f@il3d. U​p​d​a​t​e your c@rd dеtаіls hеrе to keep wa7ch1ng: netflx-billing(.)toр",
+      "no_defence": "Safe",
+      "with_defence": "Phishing",
+      "tricks_found": [
+        "invisible characters",
+        "look-alike letters",
+        "numbers or symbols in place of letters",
+        "disguised link"
+      ]
+    },
+    {
+      "attack": "Look-alike letters (Cyrillic)",
+      "original": "We noticed a login to your Instagram from Russia. If this wasn't you, secure your account now: insta-secure-login.co",
+      "evasive": "We noticed a lоgіn to уоur Instagrаm from Russia. If this wаsn't уou, sесure уоur аcсount nоw: іnstа-secure-login.co",
+      "no_defence": "Safe",
+      "with_defence": "Phishing",
+      "tricks_found": [
+        "look-alike letters"
+      ]
+    },
+    {
+      "attack": "Invisible characters",
+      "original": "We noticed a login to your Instagram from Russia. If this wasn't you, secure your account now: insta-secure-login.co",
+      "evasive": "We noticed a l​o​g​i​n to y​o​u​r I​n​s​t​a​g​r​a​m f​r​o​m R​u​s​s​i​a. If t​h​i​s w​a​s​n't y​o​u, s​e​c​u​r​e your a​c​c​o​u​n​t n​o​w: i​n​s​t​a-s​e​c​u​r​e-l​o​g​i​n.co",
+      "no_defence": "Safe",
+      "with_defence": "Phishing",
+      "tricks_found": [
+        "invisible characters"
+      ]
+    },
+    {
+      "attack": "All tricks combined",
+      "original": "We noticed a login to your Instagram from Russia. If this wasn't you, secure your account now: insta-secure-login.co",
+      "evasive": "We notісеd a login to yоur 1ns7@gr@m f​r​o​m R​u​s​sіа. If thіs wa$n't y0u, secure your account n0w: insta-s3cur3-l0g1n(.)co",
+      "no_defence": "Safe",
+      "with_defence": "Phishing",
+      "tricks_found": [
+        "invisible characters",
+        "look-alike letters",
+        "numbers or symbols in place of letters",
+        "disguised link"
+      ]
+    }
+  ]
+}
