@@ -67,6 +67,8 @@ def main():
 
     # Logistic Regression is deployed: its word weights let the app highlight WHY a message was flagged.
     best = models["Logistic Regression"]
+    (ROOT / "models").mkdir(exist_ok=True)
+    (ROOT / "reports").mkdir(exist_ok=True)
     joblib.dump({"model": best, "classes": CLASSES}, ROOT / "models/post_model.joblib")
     (ROOT / "reports/post_results.json").write_text(json.dumps({"labels": CLASSES, "models": results}, indent=2), encoding="utf-8")
 

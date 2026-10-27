@@ -124,6 +124,7 @@ def main():
         p2 = np.array([v.label != SAFE for v in vs])
         out["eval"][name] = {"v2": scores(df["y"], p2), "v3": scores(df["y"], p3)}
         print(f"{name:32s} v2 {out['eval'][name]['v2']}  v3 {out['eval'][name]['v3']}")
+    (ROOT / "models").mkdir(exist_ok=True)
     joblib.dump({"text_model": real_text, "combiner": comb, "threshold": threshold, "features": FEATURES}, ROOT / "models/v3.joblib")
     (ROOT / "reports/v3_results.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
     print(json.dumps(out["weights"], indent=1))
