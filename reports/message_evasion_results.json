@@ -10,34 +10,34 @@
   ],
   "corpora": {
     "Team-written DMs": {
-      "n_attacked": 47,
+      "n_attacked": 48,
       "Leetspeak (0TP, p@y)": {
-        "no_defence": 0.4184,
-        "with_defence": 0.9007
+        "no_defence": 0.4514,
+        "with_defence": 0.9028
       },
       "Spaced letters (p a y)": {
-        "no_defence": 0.3688,
-        "with_defence": 0.7021
+        "no_defence": 0.3819,
+        "with_defence": 0.7153
       },
       "Punctuation (v.e.r.i.f.y)": {
-        "no_defence": 0.3759,
-        "with_defence": 0.8014
+        "no_defence": 0.3819,
+        "with_defence": 0.8056
       },
       "Look-alike letters (Cyrillic)": {
-        "no_defence": 0.1844,
+        "no_defence": 0.1806,
         "with_defence": 1.0
       },
       "Invisible characters": {
-        "no_defence": 0.0922,
+        "no_defence": 0.0903,
         "with_defence": 1.0
       },
       "Disguised links (bit[.]ly)": {
-        "no_defence": 0.9787,
+        "no_defence": 0.9792,
         "with_defence": 1.0
       },
       "All tricks combined": {
-        "no_defence": 0.1206,
-        "with_defence": 0.9149
+        "no_defence": 0.1319,
+        "with_defence": 0.9167
       },
       "genuine_false_alarms": {
         "no_defence": 0.0588,
@@ -82,38 +82,38 @@
       }
     },
     "Real SMS spam": {
-      "n_attacked": 171,
+      "n_attacked": 173,
       "Leetspeak (0TP, p@y)": {
-        "no_defence": 0.386,
-        "with_defence": 0.9298
+        "no_defence": 0.3815,
+        "with_defence": 0.9306
       },
       "Spaced letters (p a y)": {
-        "no_defence": 0.4172,
-        "with_defence": 0.8109
+        "no_defence": 0.4123,
+        "with_defence": 0.8015
       },
       "Punctuation (v.e.r.i.f.y)": {
-        "no_defence": 0.4483,
-        "with_defence": 0.8947
+        "no_defence": 0.4432,
+        "with_defence": 0.8882
       },
       "Look-alike letters (Cyrillic)": {
-        "no_defence": 0.3821,
+        "no_defence": 0.3815,
         "with_defence": 1.0
       },
       "Invisible characters": {
-        "no_defence": 0.1501,
+        "no_defence": 0.1484,
         "with_defence": 1.0
       },
       "Disguised links (bit[.]ly)": {
-        "no_defence": 0.8655,
+        "no_defence": 0.8671,
         "with_defence": 1.0
       },
       "All tricks combined": {
-        "no_defence": 0.1423,
-        "with_defence": 0.9357
+        "no_defence": 0.1484,
+        "with_defence": 0.9364
       },
       "genuine_false_alarms": {
-        "no_defence": 0.0029,
-        "with_defence": 0.0029,
+        "no_defence": 0.0031,
+        "with_defence": 0.0031,
         "n": 4827
       }
     }

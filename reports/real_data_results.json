@@ -11,11 +11,11 @@
       "false_alarms": 0.0379
     },
     "Rules + ML (frozen)": {
-      "accuracy": 0.8942,
-      "spam_caught": 0.2289,
-      "precision": 0.9243,
-      "f1": 0.367,
-      "false_alarms": 0.0029
+      "accuracy": 0.8943,
+      "spam_caught": 0.2316,
+      "precision": 0.9202,
+      "f1": 0.3701,
+      "false_alarms": 0.0031
     }
   },
   "A_false_alarm_rules": {
@@ -23,6 +23,7 @@
     "SP-03": 4,
     "PH-07": 2,
     "GN-02": 2,
+    "LK-02": 1,
     "GN-01": 1,
     "MI-03": 1
   },
@@ -32,7 +33,7 @@
     "You have registered Sinco as Payee. Log in at icicibank.com and enter URN  &lt;#&gt;  to confirm. Beware of frauds. Do NOT share or disclose URN to anyone.",
     "You have registered Sinco as Payee. Log in at icicibank.com and enter URN  &lt;#&gt;  to confirm. Beware of frauds. Do NOT share or disclose URN to anyone.",
     "Your account has been refilled successfully by INR  &lt;DECIMAL&gt; . Your KeralaCircle prepaid account balance is Rs  &lt;DECIMAL&gt; . Your Transaction ID is KR &lt;#&gt; .",
-    "You all ready for * big day tomorrow?"
+    "Near kalainar tv office.thenampet"
   ],
   "A_missed_spam_examples": [
     "Free entry in 2 a wkly comp to win FA Cup final tkts 21st May 2005. Text FA to 87121 to receive entry question(std txt rate)T&C's apply 08452810075over18's",
@@ -43,7 +44,7 @@
     "England v Macedonia - dont miss the goals/team news. Txt ur national team to 87077 eg ENGLAND to 87077 Try:WALES, SCOTLAND 4txt/ú1.20 POBOXox36504W45WQ 16+"
   ],
   "A_category_of_caught_spam": {
-    "Phishing": 78,
+    "Phishing": 80,
     "Money Scam": 49,
     "Spam": 43,
     "Impersonation": 1
@@ -58,10 +59,10 @@
     "false_alarms": 0.0031
   },
   "B_frozen_same_split": {
-    "accuracy": 0.8951,
-    "spam_caught": 0.2215,
-    "precision": 0.9706,
-    "f1": 0.3607,
+    "accuracy": 0.896,
+    "spam_caught": 0.2282,
+    "precision": 0.9714,
+    "f1": 0.3696,
     "false_alarms": 0.001
   },
   "C_learning_curve": [
@@ -140,10 +141,10 @@
     },
     "Test 2 (30 DMs, unseen)": {
       "Rules + ML (synthetic-trained)": {
-        "accuracy": 0.6333,
-        "spam_caught": 0.5,
-        "precision": 0.8182,
-        "f1": 0.6207,
+        "accuracy": 0.6667,
+        "spam_caught": 0.5556,
+        "precision": 0.8333,
+        "f1": 0.6667,
         "false_alarms": 0.1667
       },
       "ML (synthetic-trained)": {
@@ -163,10 +164,10 @@
     },
     "Real SMS test split (1,115)": {
       "Rules + ML (synthetic-trained)": {
-        "accuracy": 0.8951,
-        "spam_caught": 0.2215,
-        "precision": 0.9706,
-        "f1": 0.3607,
+        "accuracy": 0.896,
+        "spam_caught": 0.2282,
+        "precision": 0.9714,
+        "f1": 0.3696,
         "false_alarms": 0.001
       },
       "ML (synthetic-trained)": {

@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from features import clean_text  # noqa: E402
 from normalise import normalise  # noqa: E402
+import link_checker  # noqa: E402
 
 SAFE = "Safe"
 
@@ -119,6 +120,7 @@ BENIGN = [
     ("OK-04", 0.3, r"\bpay me back\b|\byou (still )?owe me\b", "A friend asking to be paid back"),
 ]
 BENIGN_COMPILED = [(rid, w, re.compile(rx, re.I), why) for rid, w, rx, why in BENIGN]
+LINK_STRONG = {"LK-01", "LK-02", "LK-03", "LK-04"}  # blocklisted, brand look-alike, look-alike letters, raw IP
 EVASION_WEIGHT = 0.15  # amplifier added when the normaliser had to undo hidden-character tricks
 ML_ONLY_THRESHOLD = 0.8  # with no rule match, the ML model alone must be at least this sure
 
@@ -167,11 +169,13 @@ class Verdict:
     info: dict = field(default_factory=dict)
     evasion: list = field(default_factory=list)     # evasion tricks undone by the normaliser
     decoded: str = ""                               # the normalised text the detector actually read
+    links: list = field(default_factory=list)       # link checker results: url, host, findings, risk
 
 
 class MessageDetector:
-    def __init__(self, model_path=ROOT / "models/post_model.joblib", normalise_input=True):
+    def __init__(self, model_path=ROOT / "models/post_model.joblib", normalise_input=True, check_links=True):
         self.normalise_input = normalise_input  # False = no evasion defence (used to measure the attacks)
+        self.check_links = check_links          # False = the frozen version without the link checker
         bundle = joblib.load(model_path)
         self.model = bundle["model"]
         self.classes = list(self.model.classes_)
@@ -228,6 +232,15 @@ class MessageDetector:
             # Hiding words from a filter is itself a warning sign. Amplifier only: it never raises an alert alone.
             hits.append({"id": "EV-01", "category": None, "weight": EVASION_WEIGHT,
                          "why": "Disguises words to slip past filters", "matches": hidden})
+        links = link_checker.check_text(text) if self.check_links else []
+        best_link = {}
+        for ln in links:
+            for cid, w, why in ln["findings"]:
+                if cid not in best_link or w > best_link[cid]["weight"]:
+                    # Strong link evidence points to phishing; weaker signs only strengthen other rules
+                    best_link[cid] = {"id": cid, "category": "Phishing" if cid in LINK_STRONG else None,
+                                      "weight": w, "why": why, "matches": [ln["host"]]}
+        hits.extend(best_link.values())
 
         # Score each attack category: ML probability plus the weight of matching rules, minus benign signs.
         amplifier = sum(h["weight"] for h in hits if h["category"] is None)
@@ -250,7 +263,7 @@ class MessageDetector:
             label=label, risk=round(float(risk), 3), ml_label=ml_label,
             ml_probs={k: round(float(v), 3) for k, v in probs.items()},
             rule_hits=hits, ml_words=self._top_words(text, best),
-            info=ATTACK_INFO.get(label, {}), evasion=list(tricks), decoded=text if tricks else "",
+            info=ATTACK_INFO.get(label, {}), evasion=list(tricks), decoded=text if tricks else "", links=links,
         )
 
 

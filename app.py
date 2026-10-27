@@ -28,6 +28,7 @@ import themes  # noqa: E402
 import incidents  # noqa: E402
 import ai_layer  # noqa: E402
 import normalise  # noqa: E402
+import link_checker  # noqa: E402
 import obfuscate  # noqa: E402
 
 st.set_page_config(page_title="SocialShield", page_icon="🛡️", layout="wide")
@@ -244,6 +245,21 @@ def sender_box(user_id):
                     unsafe_allow_html=True)
 
 
+def links_box(v):
+    links = getattr(v, "links", [])
+    if not links:
+        return
+    rows = []
+    for ln in links:
+        if ln["findings"]:
+            why = "; ".join(w for _, _, w in ln["findings"])
+            rows.append(f"🔗 <b>{html.escape(ln['host'])}</b>: <span style='color:#e66767'>{html.escape(why)}</span>")
+        else:
+            rows.append(f"🔗 <b>{html.escape(ln['host'])}</b>: no warning signs in the address")
+    st.markdown("<div class='small'><b>Link check</b> (address analysis plus a blocklist of "
+                f"{link_checker.blocklist_size():,} real phishing domains)<br>" + "<br>".join(rows) + "</div>", unsafe_allow_html=True)
+
+
 def ai_box(ai):
     if ai is None:
         return
@@ -290,6 +306,7 @@ def verdict_view(text, v, sender_id=None, by="Hybrid detector", ai=None, inciden
     if v.evasion:
         st.markdown(f"<span class='small'>🔤 <b>Disguised text decoded</b> ({html.escape(', '.join(v.evasion))}): "
                     f"{html.escape(v.decoded)}</span>", unsafe_allow_html=True)
+    links_box(v)
     ai_box(ai)
     if v.label == SAFE and v.rule_hits:
         st.markdown(f"<span class='small'>Some warning signs were found (highlighted): "
@@ -377,10 +394,11 @@ def page_home():
             st.page_link(page, label=f"**{cta}**", icon="➡️", use_container_width=True)
     st.write("")
     st.subheader("How SocialShield decides")
-    c = st.columns(3)
+    c = st.columns(4)
     for col, (icon, h, d) in zip(c, [
             ("📋", "Scam signatures", "37 known scam patterns, like urgent payment requests or 'verify your account' links. Works like antivirus signatures."),
-            ("🧠", "Message AI model", "A machine learning model trained on 131,284 real and malicious posts to recognise scam wording."),
+            ("🔗", "Link checker", "Checks every web address for brand look-alikes and other tricks, and against a blocklist of 392,151 real phishing domains."),
+            ("🧠", "Message AI model", "A machine learning model trained on 131,284 genuine and malicious posts (a synthetic dataset) to recognise scam wording."),
             ("👤", "Account checker", "A second model that spots fake and bot accounts from their profile and posting behaviour.")]):
         col.markdown(f"<div class='step'><div class='h'>{icon} {h}</div><div class='d'>{d}</div></div>", unsafe_allow_html=True)
     st.write("")
@@ -469,11 +487,52 @@ def feed_source():
     return posts[posts["user_id"].isin(test_users)].sample(frac=1, random_state=3).reset_index(drop=True)
 
 
+REAL_SMS = ROOT / "data/external/sms.tsv"
+SRC_DATASET, SRC_REAL = "Dataset posts (synthetic)", "Real SMS messages (UCI, 5,574)"
+
+
+@st.cache_data(show_spinner="Scanning 5,574 real SMS messages (once)...")
+def real_sms():
+    d = pd.read_csv(REAL_SMS, sep="\t", header=None, names=["truth", "content"], quoting=3)
+    d = d.sample(frac=1, random_state=3).reset_index(drop=True)
+    vs = det.analyze_many(d["content"].tolist(), channel="dm")
+    d["alert"] = [v.label for v in vs]
+    d["risk"] = [v.risk for v in vs]
+    d["activity_id"] = [f"sms{i}" for i in range(len(d))]
+    d["user_id"] = None
+    d["who"] = "unknown number"
+    return d
+
+
+def source_picker(key, first=SRC_DATASET):
+    """Switch a page between its usual data and real messages. Returns True for real data."""
+    if not REAL_SMS.exists():
+        return False
+    choice = st.segmented_control("Data source", [first, SRC_REAL], default=first, key=key,
+                                  label_visibility="collapsed")
+    return choice == SRC_REAL
+
+
+def truth_note(truth):
+    ok = truth == "spam"
+    return (f"<span class='small'>Ground truth from the dataset: <b style='color:{'#e66767' if ok else COLORS[SAFE]}'>"
+            f"{'spam' if ok else 'genuine'}</b> (real SMS, labelled by the dataset authors)</span>")
+
+
 def page_feed():
     intro("🚨 Live threat feed", "Simulates a platform's incoming posts. Press <b>Start</b>: every post is scanned as it "
           "arrives and threats appear on the left. Press <b>View</b> on any alert to see why it was flagged.")
-    src = feed_source()
     ss = st.session_state
+    real = source_picker("feed_source")
+    if ss.get("feed_mode") != real:   # switching source restarts the stream
+        ss.feed_mode, ss.feed_pos, ss.feed_sel, ss.feed_on = real, 0, None, False
+    if real:
+        src = real_sms()
+        st.caption("Real text messages that SocialShield was never trained on. The ground truth is shown so you can see "
+                   "every hit and every miss.")
+    else:
+        src = feed_source().copy()
+        src["who"] = "@" + src["user_id"].map(acc["username"])
     ss.setdefault("feed_pos", 0); ss.setdefault("feed_on", False); ss.setdefault("feed_sel", None)
     c = st.columns([1, 1, 2.2])
     if c[0].button("⏸️ Pause" if ss.feed_on else "▶️ Start", type="primary", use_container_width=True):
@@ -491,19 +550,25 @@ def page_feed():
             ss.feed_pos = min(ss.feed_pos + speed, len(src))
             new = src.iloc[prev: ss.feed_pos]
             flagged = new[new["alert"] != SAFE]
-            incidents.add_many([{"key": f"post:{r['activity_id']}", "source": "Live feed", "alert": r["alert"], "risk": r["risk"],
-                                 "text": r["content"], "sender": acc.loc[r["user_id"], "username"]} for _, r in flagged.iterrows()])
+            incidents.add_many([{"key": f"post:{r['activity_id']}", "source": "Live feed (real SMS)" if real else "Live feed",
+                                 "alert": r["alert"], "risk": r["risk"], "text": r["content"], "sender": r["who"].lstrip("@")}
+                                for _, r in flagged.iterrows()])
             hot = new[(new["alert"] != SAFE) & (new["risk"] >= 0.75)]
             if not hot.empty:
                 h = hot.iloc[-1]
                 more = f" (+{len(hot) - 1} more)" if len(hot) > 1 else ""
-                st.toast(f"**{h['alert']}** from @{acc.loc[h['user_id'], 'username']}{more}", icon=ICONS[h["alert"]])
+                st.toast(f"**{h['alert']}** from {h['who']}{more}", icon=ICONS[h["alert"]])
         seen = src.iloc[: ss.feed_pos]
         alerts = seen[seen["alert"] != SAFE]
         m = st.columns(3)
         card(m[0], f"{len(seen):,}", "Posts scanned")
         card(m[1], f"{len(alerts):,}", "Threats caught", "#e66767", "Posts flagged as phishing, money scam, spam, misinformation, impersonation or adult scam.")
-        card(m[2], f"{alerts['user_id'].nunique():,}", "Attacker accounts", T["primary"], "Distinct accounts that posted at least one flagged message.")
+        if real:
+            spam = seen[seen["truth"] == "spam"]
+            card(m[2], f"{(spam['alert'] != SAFE).sum()} / {len(spam)}", "Real spam caught so far", T["primary"],
+                 "Spam according to the dataset's own labels, and how much of it SocialShield flagged.")
+        else:
+            card(m[2], f"{alerts['user_id'].nunique():,}", "Attacker accounts", T["primary"], "Distinct accounts that posted at least one flagged message.")
         st.write("")
         left, right = st.columns([1, 1.25])
         with left:
@@ -511,14 +576,18 @@ def page_feed():
             if recent.empty:
                 st.info("Waiting for posts. Press Start.")
             for idx, r in recent.iterrows():
-                if alert_row(r["alert"], r["risk"], "@" + acc.loc[r["user_id"], "username"], r["content"], f"f{idx}"):
+                if alert_row(r["alert"], r["risk"], r["who"], r["content"], f"f{idx}"):
                     ss.feed_sel = int(idx)
         with right:
             if ss.feed_sel is not None:
                 r = src.iloc[ss.feed_sel]
                 with st.container(border=True):
-                    st.caption(f"Posted {r['timestamp']} · {r['device']} · {r['post_country']}")
-                    verdict_view(r["content"], det.analyze(r["content"], channel="post"), r["user_id"], incident_key=f"post:{r['activity_id']}")
+                    if real:
+                        st.markdown(truth_note(r["truth"]), unsafe_allow_html=True)
+                        verdict_view(r["content"], det.analyze(r["content"], channel="dm"), None, incident_key=f"post:{r['activity_id']}")
+                    else:
+                        st.caption(f"Posted {r['timestamp']} · {r['device']} · {r['post_country']}")
+                        verdict_view(r["content"], det.analyze(r["content"], channel="post"), r["user_id"], incident_key=f"post:{r['activity_id']}")
             else:
                 st.markdown(f"<div class='card'><div class='l'>Alert details will appear here.</div></div>",
                             unsafe_allow_html=True)
@@ -541,10 +610,21 @@ def scan_dm_file(mtime):
     return d, det.analyze_many(d["text"])
 
 
+@st.cache_data
+def real_inbox():
+    """60 real SMS (30 spam, 30 genuine), drawn at random once, as a realistic inbox."""
+    d = real_sms()
+    return pd.concat([d[d["truth"] == "spam"].head(30), d[d["truth"] == "ham"].head(30)]).sample(frac=1, random_state=5)
+
+
 def page_dm():
-    intro("✉️ DM inbox scanner", "Private messages are where most scams happen. The dataset has no DMs, so these were "
-          "written by our team and never used for training: a fair test of how the detector handles new messages.")
+    intro("✉️ DM inbox scanner", "Private messages are where most scams happen. Neither inbox below was used for training, "
+          "so this is a fair test of how the detector handles new messages.")
     ss = st.session_state
+    if source_picker("dm_source", "Team-written DMs (Test 1, 62 messages)"):
+        real_inbox_view()
+        return
+    st.caption("The dataset has no DMs, so these messages were written by our team as test sets.")
     ss.setdefault("live_dms", []); ss.setdefault("dm_sel", 0)
 
     with st.container(border=True):
@@ -616,9 +696,41 @@ def page_dm():
             verdict_view(r["text"], v, r["sender"], by, ai, r["key"])
 
 
+def real_inbox_view():
+    d = real_inbox()
+    st.caption("A random inbox of 60 real text messages (30 spam, 30 genuine) from the UCI SMS Spam Collection. "
+               "SocialShield never saw them during training; the dataset's own label is shown for each one.")
+    spam = d["truth"] == "spam"
+    flagged = d["alert"] != SAFE
+    c = st.columns(4)
+    card(c[0], len(d), "Real messages")
+    card(c[1], f"{(flagged & spam).sum()} / {spam.sum()}", "Spam caught", "#e66767")
+    card(c[2], f"{(flagged & ~spam).sum()} / {(~spam).sum()}", "False alarms on genuine", COLORS[SAFE])
+    card(c[3], f"{((flagged == spam)).mean():.0%}", "Verdicts that match the label", T["primary"])
+    st.write("")
+    left, right = st.columns([1, 1.25])
+    ss = st.session_state
+    with left:
+        show = st.radio("Show", ["All messages", "Missed spam", "Threats only"], horizontal=True, label_visibility="collapsed",
+                        key="real_dm_show")
+        for i, (_, r) in enumerate(d.iterrows()):
+            if show == "Threats only" and r["alert"] == SAFE:
+                continue
+            if show == "Missed spam" and not (r["truth"] == "spam" and r["alert"] == SAFE):
+                continue
+            tag = "real spam" if r["truth"] == "spam" else "real genuine"
+            if alert_row(r["alert"], r["risk"], f"unknown number · {tag}", r["content"], f"rdm{i}"):
+                ss.real_dm_sel = i
+    with right:
+        r = d.iloc[min(ss.get("real_dm_sel", 0), len(d) - 1)]
+        with st.container(border=True):
+            st.markdown(truth_note(r["truth"]), unsafe_allow_html=True)
+            verdict_view(r["content"], det.analyze(r["content"]), None, incident_key=f"post:{r['activity_id']}")
+
+
 def page_analyzer():
-    intro("🔍 Message scanner", "Paste any message or post. SocialShield checks it against 37 known scam patterns "
-          "and an ML model, then explains its decision.")
+    intro("🔍 Message scanner", "Paste any message or post. SocialShield undoes disguised text, checks it against 37 known scam patterns, "
+          "checks every link, runs an ML model, then explains its decision.")
     examples = {
         "🎣 Phishing": "Dear user, your Instagram account will be suspended within 24 hours. Verify your login details here: insta-verify-help.net",
         "💸 Money request": "Hi it's Rahul, this is my new number. Lost my phone, can you send 5000 on GPay urgently? Will return tomorrow",
@@ -927,6 +1039,22 @@ def real_world_check():
             f"real spam, but it almost never raises a false alarm. Trained on real SMS, it catches {real['ML (real-SMS-trained)']['spam_caught']:.0%}, "
             f"yet that model flags {t2['false_alarms']:.0%} of our genuine Indian DMs. There is no universal scam detector: "
             f"each platform has to train on its own messages, and about 200 real labelled examples already help a lot.")
+    lr = report_json("link_results.json")
+    if lr:
+        st.divider()
+        st.markdown("**🔗 Link checker on real domains**")
+        t = lr["thresholds"]["0.2"]
+        k = st.columns(3)
+        card(k[0], f"{t['phishing_caught']:.0%}", f"of {lr['n_phishing']:,} real phishing domains flagged from the address alone", "#e66767",
+             "Random sample of active phishing domains from the public Phishing.Database feed. The blocklist lookup was switched off "
+             "for this test, so this is what the checks catch on a phishing site no list has seen yet.")
+        card(k[1], f"{t['legit_flagged']:.1%}", f"of the {lr['n_legit']:,} most popular real websites wrongly flagged", COLORS[SAFE])
+        card(k[2], f"{lr['blocklist']['domains_used']:,}", "real phishing domains in the blocklist", T["primary"],
+             f"{lr['blocklist']['popular_domains_removed']} popular legitimate sites (such as pastebin.com) were on the public feed "
+             "by mistake and were removed: blocklists have false alarms too.")
+        pc = pd.DataFrame(lr["per_check"]).T
+        pc = pc.assign(Check=pc["why"], Phishing=pc["phishing"].map("{:.1%}".format), Legitimate=pc["legit"].map("{:.1%}".format))
+        st.dataframe(pc[["Check", "Phishing", "Legitimate"]], use_container_width=True)
 
 
 def page_incidents():

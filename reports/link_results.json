@@ -1,0 +1,280 @@
+{
+  "n_phishing": 10000,
+  "n_legit": 10000,
+  "phishing_pool": 371794,
+  "thresholds": {
+    "0.2": {
+      "phishing_caught": 0.5032,
+      "legit_flagged": 0.0074
+    },
+    "0.3": {
+      "phishing_caught": 0.1285,
+      "legit_flagged": 0.0024
+    },
+    "0.45": {
+      "phishing_caught": 0.0707,
+      "legit_flagged": 0.0024
+    }
+  },
+  "per_check": {
+    "LK-02": {
+      "why": "Uses a brand's name on a website that brand does not own",
+      "phishing": 0.0691,
+      "legit": 0.0023
+    },
+    "LK-03": {
+      "why": "Web address uses look-alike letters from another alphabet",
+      "phishing": 0.0001,
+      "legit": 0.0001
+    },
+    "LK-04": {
+      "why": "Link goes to a raw IP address instead of a website name",
+      "phishing": 0.0149,
+      "legit": 0.0
+    },
+    "LK-05": {
+      "why": "Website ending often used by scammers",
+      "phishing": 0.1381,
+      "legit": 0.0013
+    },
+    "LK-06": {
+      "why": "Free hosting address often used for throwaway scam pages",
+      "phishing": 0.2865,
+      "legit": 0.0004
+    },
+    "LK-07": {
+      "why": "Login or payment words inside the website name",
+      "phishing": 0.0834,
+      "legit": 0.0033
+    },
+    "LK-08": {
+      "why": "Link shortener hides where the link really goes",
+      "phishing": 0.0,
+      "legit": 0.0006
+    }
+  },
+  "legit_flagged_examples": [
+    [
+      "youtube-mp3.org",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "yahoo-mbga.jp",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "xn--igbhe7b5a3d5a.com",
+      [
+        "LK-03"
+      ]
+    ],
+    [
+      "telegraf.com.ua",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "dropboxusercontent.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "incometaxindiaefiling.gov.in",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "cdninstagram.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "withgoogle.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "googlegroups.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "yahoo-help.jp",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "microsofttranslator.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "pcloud.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "onlinesbh.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "youtubeinmp4.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "mmm-office.com",
+      [
+        "LK-02"
+      ]
+    ]
+  ],
+  "phishing_missed_examples": [
+    "melijobs788.com",
+    "portalenvios-correos.com",
+    "start-help-exodus-cdn.teachable.com",
+    "app-luiza-magalu-ofertas.myshopify.com",
+    "myupheldvallet.bravesites.com",
+    "1632164721496.pagedemo.co",
+    "reyjs.blogspot.md",
+    "pjwmapwlalapodobxuxyjkiwzg-dot-gleowayel400503.uc.r.appspot.com",
+    "bluedragonsoftware.com",
+    "royal-mail.redelivery-ukfee.com",
+    "ncap.eating.xin",
+    "ejvhu.le.nabiad.com.bd",
+    "mbservice-3b.ddns.net",
+    "adsmetaforbusiness.ubpages.com",
+    "antalalai.com"
+  ],
+  "phishing_caught_examples": [
+    [
+      "netflix-clone-ui-olive.vercel.app",
+      [
+        "LK-02",
+        "LK-06"
+      ]
+    ],
+    [
+      "binanceno.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "apple.unic.ooo",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "microsoft.viennguyen.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "microsoftlogin.glitch.me",
+      [
+        "LK-02",
+        "LK-06",
+        "LK-07"
+      ]
+    ],
+    [
+      "facebook-story.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "cancel697869-binance-com.web.app",
+      [
+        "LK-02",
+        "LK-06"
+      ]
+    ],
+    [
+      "notifiication-identiti-officer-recovry-suport.my.id",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "coinbase-cln.pages.dev",
+      [
+        "LK-02",
+        "LK-06"
+      ]
+    ],
+    [
+      "icloud-com.xyz",
+      [
+        "LK-02",
+        "LK-05"
+      ]
+    ],
+    [
+      "30410-gmail.com",
+      [
+        "LK-02"
+      ]
+    ],
+    [
+      "office3cf895782b55ee61c6911a3e73f689383cf895782b55ee61c6911a3e7.office-sharepoint.workers.dev",
+      [
+        "LK-02",
+        "LK-06"
+      ]
+    ],
+    [
+      "amazon.co.jp.amazon12asasd54adc2aa.buzz",
+      [
+        "LK-02",
+        "LK-05"
+      ]
+    ],
+    [
+      "mail.whatsapp677.grupwa666.duckdns.org",
+      [
+        "LK-02",
+        "LK-06"
+      ]
+    ],
+    [
+      "facebook-clone-kappa.vercel.app",
+      [
+        "LK-02",
+        "LK-06"
+      ]
+    ]
+  ],
+  "blocklist": {
+    "source": "Phishing.Database (github.com/mitchellkrogza/Phishing.Database), phishing-domains-ACTIVE, downloaded 27 Oct 2026",
+    "domains_in_feed": 392164,
+    "popular_domains_removed": 13,
+    "examples_removed": [
+      "pastebin.com",
+      "gravatar.com",
+      "getpocket.com",
+      "mercadolibre.com.ar",
+      "name.com"
+    ],
+    "domains_used": 392151
+  }
+}

@@ -12,9 +12,13 @@ models hold up when attackers adapt.
    spaced or dotted letters, disguised links) before anything else reads the message,
    like traffic normalisation in an IDS. Hiding words is itself treated as a warning sign.
 1. **Signature rules**: 37 known scam patterns (like antivirus or IDS signatures).
-2. **Message ML model**: TF-IDF + Logistic Regression trained on 131,284 posts.
-3. **Account model**: Random Forest on profile and behaviour features, plus an attack-type model.
-4. **Optional local AI second opinion**: a small language model run locally with Ollama
+2. **Link checker**: every web address in a message is checked for brand look-alikes
+   (paypa1, g00gle, netflix-billing.top), look-alike letters, raw IP addresses, risky endings,
+   free hosting, login words and link shorteners, and against a blocklist of 392,151 real
+   phishing domains (Phishing.Database).
+3. **Message ML model**: TF-IDF + Logistic Regression trained on 131,284 posts.
+4. **Account model**: Random Forest on profile and behaviour features, plus an attack-type model.
+5. **Optional local AI second opinion**: a small language model run locally with Ollama
    (default `qwen2.5:3b`). It can add an alert the other layers missed but can never clear one,
    and messages that try to instruct the AI (prompt injection) are treated as attacks.
 
@@ -38,8 +42,10 @@ The AI layer is skipped when Ollama is not available, for example on Streamlit C
 | `python src/evaluate_ai.py` | Rules + ML + local AI on the team-written DM tests (needs Ollama) |
 | `python src/real_data_test.py` | The detector on 5,574 REAL SMS messages, retraining and a learning curve |
 | `python src/message_evasion_test.py` | Obfuscation attacks on messages, with and without the normaliser |
+| `python src/link_test.py <phishing_domains.txt> <top_domains.txt>` | Link checks on 10,000 real phishing domains and the 10,000 most popular real sites |
 
-Results are saved in `reports/` and shown in the app's Evasion Lab.
+Results are saved in `reports/` and shown in the app's Evasion Lab. The Live Feed and DM Inbox can also switch
+from the synthetic dataset to the 5,574 real SMS messages, with each message's true label shown.
 
 ## Change the colour theme
 `python src/set_theme.py light` (or `midnight`, `terminal`, `slate`), then restart the app.
@@ -47,6 +53,7 @@ Results are saved in `reports/` and shown in the app's Evasion Lab.
 ## Data
 - `data/raw_user_profiles.csv`, `data/raw_user_activities.csv`: Kaggle "Fake Profile and Post Detection on Social Media" (synthetic).
 - `data/dm_messages.csv` (Test 1) and `data/dm_test2.csv` (Test 2, unseen): team-written DM test sets (`text,label`). Used only for testing, never for training.
+- `data/external/phishing_domains.txt.gz`: active phishing domains from Phishing.Database (github.com/mitchellkrogza/Phishing.Database), downloaded 27 Oct 2026, with 13 popular legitimate sites removed.
 - `data/external/sms.tsv`: UCI SMS Spam Collection (Almeida, Gomez Hidalgo and Yamakami, 2011; CC BY 4.0), real messages used only for the real-world check.
 - DMs and spread paths are simulated because the dataset has neither. Share counts are real.
 - `account_type` and `content_type` are never used as features because they reveal the label.
