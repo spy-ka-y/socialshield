@@ -1015,7 +1015,7 @@ def real_world_check():
     if v3r:
         st.divider()
         st.markdown("**🧠 Better models, same held-out tests** (scams caught / false alarms on genuine messages)")
-        fmt = lambda d: f"{d['caught']:.0%} / {d['false_alarms']:.0%}" if d else "not measured"  # noqa: E731
+        fmt = lambda d: f"{d['caught']:.0%} / {d['false_alarms']:.1%}" if d else "not measured"  # noqa: E731
         rows = {
             "v2: rules + links + synthetic-trained model (in the app)": [
                 fmt(v3r["eval"]["Real SMS test split"]["v2"]), fmt(v3r["eval"]["Test 2 (unseen DMs)"]["v2"]), fmt(t3r["v2"] if t3r else None)],
