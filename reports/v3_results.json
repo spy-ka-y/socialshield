@@ -1,0 +1,85 @@
+{
+  "threshold": 0.5,
+  "features": [
+    "rules_Phishing",
+    "rules_Money Scam",
+    "rules_Spam",
+    "rules_Misinformation",
+    "rules_Impersonation",
+    "rules_Adult Scam",
+    "amplifiers",
+    "benign",
+    "evasion",
+    "link_strong",
+    "link_weak",
+    "ml_synthetic",
+    "ml_real",
+    "log_len"
+  ],
+  "weights": {
+    "rules_Phishing": 0.226,
+    "rules_Money Scam": 0.598,
+    "rules_Spam": 0.694,
+    "rules_Misinformation": 0.798,
+    "rules_Impersonation": 0.393,
+    "rules_Adult Scam": 0.0,
+    "amplifiers": 0.084,
+    "benign": -0.253,
+    "evasion": 0.134,
+    "link_strong": 0.041,
+    "link_weak": 0.789,
+    "ml_synthetic": 0.538,
+    "ml_real": 3.818,
+    "log_len": 1.029
+  },
+  "eval": {
+    "Real SMS test split": {
+      "v2": {
+        "caught": 0.2282,
+        "false_alarms": 0.001,
+        "n": 1115
+      },
+      "v3": {
+        "caught": 0.9463,
+        "false_alarms": 0.0041,
+        "n": 1115
+      }
+    },
+    "Test 2 (unseen DMs)": {
+      "v2": {
+        "caught": 0.5556,
+        "false_alarms": 0.1667,
+        "n": 30
+      },
+      "v3": {
+        "caught": 0.8889,
+        "false_alarms": 0.4167,
+        "n": 30
+      }
+    },
+    "Kaggle test accounts (posts)": {
+      "v2": {
+        "caught": 1.0,
+        "false_alarms": 0.0,
+        "n": 5000
+      },
+      "v3": {
+        "caught": 1.0,
+        "false_alarms": 0.0,
+        "n": 5000
+      }
+    },
+    "Test 1 (used in training)": {
+      "v2": {
+        "caught": 0.95,
+        "false_alarms": 0.0,
+        "n": 62
+      },
+      "v3": {
+        "caught": 1.0,
+        "false_alarms": 0.0,
+        "n": 62
+      }
+    }
+  }
+}
