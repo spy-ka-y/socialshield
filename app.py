@@ -741,7 +741,7 @@ def page_analyzer():
 
 
 def page_accounts():
-    intro("👤 Account inspector", "Pick any account to see whether it is genuine or fake, what kind of attacker it is, "
+    intro("👤 Fake account inspector", "Pick any account to see whether it is genuine or fake, what kind of attacker it is, "
           "and the evidence behind the decision.")
     a, b = st.columns([1, 2.5])
     kind = a.radio("Show", ["Fake accounts", "Genuine accounts"], horizontal=True, label_visibility="collapsed")
