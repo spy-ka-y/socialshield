@@ -70,14 +70,14 @@ FAQ = [
 
     ("Results", "How accurate is it?", "accuracy results score performance percent how good",
      "On the Kaggle test data: **100%** for accounts and messages. That number is real but misleading, because the "
-     "dataset is synthetic. On harder, held-out tests:\n\n* **Real Twitter accounts (Cresci-2017):** 98.7% accuracy, 1.2% "
+     "dataset is synthetic. On harder, held-out tests:\n\n* **Real Twitter accounts (Cresci-2017):** 98.7% accuracy, 1.1% "
      "false alarms, with a model trained on real accounts\n* **5,574 real SMS:** 23% caught by the app's detector, 95% by v3 "
      "and 97% by a fine-tuned transformer, all with under 1% false alarms\n* **Indian messages we wrote (Test 2 and 3):** "
      "the app's detector catches 40 to 56% with 17 to 20% false alarms; the stronger models catch 80 to 94% but raise far "
      "more false alarms on bank alerts and OTPs"),
     ("Results", "Does it work on real bot accounts?", "real bots twitter cresci accounts real data account model real world",
      "Yes, once it learns from real accounts. We used **Cresci-2017**: 12,737 real Twitter accounts labelled by researchers "
-     "(3,474 genuine, 9,263 bots of five kinds). A Random Forest on profile data reached **98.7% accuracy with 1.2% false "
+     "(3,474 genuine, 9,263 bots of five kinds). A Random Forest on profile data reached **98.7% accuracy with 1.1% false "
      "alarms**. Our Kaggle-trained model caught **0%** of these real bots, because real accounts look nothing like the "
      "synthetic ones. Even a kind of bot it never saw in training was mostly caught (56% to 99% depending on the kind). "
      "Try it on the **Fake accounts** page, tab *Check a real profile*."),
