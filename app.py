@@ -29,6 +29,7 @@ import incidents  # noqa: E402
 import ai_layer  # noqa: E402
 import normalise  # noqa: E402
 import link_checker  # noqa: E402
+import faq  # noqa: E402
 import obfuscate  # noqa: E402
 
 st.set_page_config(page_title="SocialShield", page_icon="🛡️", layout="wide")
@@ -170,9 +171,21 @@ def log_alert(key, source, v, text, sender="", by="Hybrid detector"):
 
 
 # ---------------------------------------------------------------- shared pieces
+EMBED = {"on": False}   # True while a page section is shown inside a tab of another page
+
+
 def intro(title, text):
-    st.title(title)
+    if not EMBED["on"]:
+        st.title(title)
     st.markdown(f"<div class='intro'>{text}</div>", unsafe_allow_html=True)
+
+
+def embedded(fn):
+    EMBED["on"] = True
+    try:
+        fn()
+    finally:
+        EMBED["on"] = False
 
 
 def badge(label):
@@ -377,46 +390,6 @@ def incident_row(i, prefix):
 
 
 # ================================================================ PAGES
-def page_home():
-    st.title("🛡️ SocialShield")
-    st.markdown("<div class='hero'>Finds <b>fake accounts</b> and <b>social media scams</b> (phishing links, money requests, "
-                "spam, misinformation and impersonation) and explains every decision in plain language.</div>",
-                unsafe_allow_html=True)
-    st.subheader("Start here: a 3-minute tour")
-    steps = [("1", "Scan a message", "Type any suspicious message, or pick an example, and see if it is a scam and why.", P["scan"], "Open Message Scanner"),
-             ("2", "Check the DM inbox", "Messages written by our team, scanned for phishing, money requests and impersonation.", P["dms"], "Open DM Inbox"),
-             ("3", "Watch the live feed", "Posts stream in like a real platform. Threats pop up the moment they are caught.", P["feed"], "Open Live Feed")]
-    cols = st.columns(3)
-    for col, (n, h, d, page, cta) in zip(cols, steps):
-        with col:
-            st.markdown(f"<div class='step tour'><div class='num'>{n}</div><div class='h'>{h}</div><div class='d'>{d}</div></div>",
-                        unsafe_allow_html=True)
-            st.page_link(page, label=f"**{cta}**", icon="➡️", use_container_width=True)
-    st.write("")
-    st.subheader("How SocialShield decides")
-    c = st.columns(4)
-    for col, (icon, h, d) in zip(c, [
-            ("📋", "Scam signatures", "37 known scam patterns, like urgent payment requests or 'verify your account' links. Works like antivirus signatures."),
-            ("🔗", "Link checker", "Checks every web address for brand look-alikes and other tricks, and against a blocklist of 392,151 real phishing domains."),
-            ("🧠", "Message AI model", "A machine learning model trained on 131,284 genuine and malicious posts (a synthetic dataset) to recognise scam wording."),
-            ("👤", "Account checker", "A second model that spots fake and bot accounts from their profile and posting behaviour.")]):
-        col.markdown(f"<div class='step'><div class='h'>{icon} {h}</div><div class='d'>{d}</div></div>", unsafe_allow_html=True)
-    st.write("")
-    st.subheader("What the alerts mean")
-    meaning = {"Phishing": "Fake login pages or forms that steal passwords and OTPs",
-               "Money Scam": "Requests for money or fake investment profits",
-               "Spam": "Mass promotional messages and chain forwards",
-               "Misinformation": "False claims written to be shared quickly",
-               "Impersonation": "Pretending to be a brand, official or someone you know",
-               "Adult Scam": "Sexual bait leading to scams or blackmail"}
-    c = st.columns(2)
-    for i, (k, d) in enumerate(meaning.items()):
-        c[i % 2].markdown(f"{badge(k)} &nbsp;<span class='small'>{d}</span>", unsafe_allow_html=True)
-    st.write("")
-    st.caption("More to explore in the sidebar: Overview (all numbers), Account Inspector, Spread Network and Evasion Lab. "
-               "Data: Kaggle social media dataset (synthetic). DMs written by our team; spread paths simulated.")
-
-
 def page_overview():
     intro("🛡️ Threat overview", "SocialShield scanned every account and every post in the dataset. "
           "This page summarises who is attacking and how.")
@@ -441,8 +414,7 @@ def page_overview():
         for i in sorted(open_inc, key=lambda x: (x["risk"], x["id"]), reverse=True)[:5]:
             incident_row(i, "ov")
     else:
-        st.success("No open alerts. Start the Live Feed or scan a message to generate some.")
-    st.page_link(P["incidents"], label="Open the full Incident Log", icon="📒")
+        st.success("No open alerts. Start the Live feed or check a message to generate some.")
 
     st.subheader("Who is attacking (whole dataset)")
     by, pb = summary["accounts_by_alert"], summary["posts_by_alert"]
@@ -478,7 +450,7 @@ def page_overview():
         perf = pd.DataFrame(results["binary"]).T.drop(columns="confusion_matrix").astype(float)
         perf.columns = ["Accuracy", "Precision", "Recall", "F1-score", "ROC-AUC"]
         st.dataframe(perf.style.format("{:.3f}"), use_container_width=True)
-        st.caption("Near perfect because the dataset is synthetic. The DM Inbox and Evasion Lab show realistic performance.")
+        st.caption("Near perfect because the dataset is synthetic. The Research page shows realistic performance on real and unseen data.")
 
 
 @st.cache_data
@@ -1062,7 +1034,7 @@ def page_incidents():
           "like a security operations centre. Use the buttons to block, quarantine or dismiss.")
     inc = incidents.all_incidents()
     if not inc:
-        st.info("No incidents yet. Start the Live Feed, open the DM Inbox or scan a message.")
+        st.info("No incidents yet. Start the Live feed or check a message.")
         return
     df = pd.DataFrame(inc)
     k = st.columns(4)
@@ -1101,23 +1073,138 @@ def page_incidents():
                 st.rerun()
 
 
+# ================================================================ SIMPLE PAGES
+HOW_IT_WORKS = [("1", "🔤", "Clean", "Undo hidden tricks: invisible characters, look-alike letters, 0TP, p a y"),
+                ("2", "📋", "Rules", "37 known scam patterns, like 'share your OTP' or 'pay a processing fee'"),
+                ("3", "🔗", "Links", "Every web address checked for fake brands and against 392,151 real phishing sites"),
+                ("4", "🧠", "ML models", "Learned from 131,284 posts and 5,000 accounts which patterns mean scam or fake"),
+                ("5", "🚨", "Alert", "One risk score, the reasons highlighted, then Block, Quarantine or dismiss")]
+
+
+def page_dashboard():
+    st.title("🛡️ SocialShield")
+    st.markdown("<div class='hero'>Finds <b>fake accounts</b> and <b>scam messages</b> on social media, shows <b>why</b> "
+                "each one is suspicious, and lets you <b>block</b> it.</div>", unsafe_allow_html=True)
+    cols = st.columns(len(HOW_IT_WORKS))
+    for col, (n, icon, h, d) in zip(cols, HOW_IT_WORKS):
+        col.markdown(f"<div class='step tour'><div class='num'>{n}</div><div class='h'>{icon} {h}</div><div class='d'>{d}</div></div>",
+                     unsafe_allow_html=True)
+    st.write("")
+    embedded(page_overview)
+    with st.expander("📒 Incident log: every alert and what was done about it"):
+        embedded(page_incidents)
+
+
+def page_check():
+    st.title("🔍 Check a message")
+    t1, t2 = st.tabs(["Scan any message", "DM inbox"])
+    with t1:
+        embedded(page_analyzer)
+    with t2:
+        embedded(page_dm)
+
+
+def page_research():
+    st.title("🔬 Research: how it spreads and how it fails")
+    st.markdown("<div class='intro'>Honest tests beyond the training data.</div>", unsafe_allow_html=True)
+    t1, t2, t3, t4 = st.tabs(["🕸️ How misinformation spreads", "🎭 Fake accounts imitate users",
+                              "🔤 Scammers disguise words", "🌍 Real-world check"])
+    with t1:
+        embedded(page_spread)
+    with t2:
+        evasion_accounts()
+    with t3:
+        evasion_messages()
+    with t4:
+        real_world_check()
+
+
+@st.cache_resource
+def faq_index():
+    return faq.FAQIndex()
+
+
+QUESTION_START = ("what", "how", "why", "who", "which", "when", "where", "can", "could", "is ", "are ", "does", "do ",
+                  "did", "explain", "tell", "describe", "give", "show", "list", "should", "will", "would")
+
+
+def looks_like_message(text):
+    """A pasted message to check, rather than a question about the project."""
+    t = text.strip().lower()
+    if t.startswith(("check:", "scan:", "is this a scam:")):
+        return True
+    if t.endswith("?") or t.startswith(QUESTION_START):
+        return False
+    return bool(link_checker.find_links(t)) or len(t.split()) >= 8
+
+
+def answer(text):
+    """Returns (markdown answer, kind)."""
+    t = text.strip()
+    if looks_like_message(t):
+        msg = t.split(":", 1)[1].strip() if t.lower().startswith(("check:", "scan:", "is this a scam:")) else t
+        v = det.analyze(msg)
+        if v.label == SAFE:
+            out = f"✅ **Looks safe** (risk {v.risk:.0%})."
+            if v.rule_hits:
+                out += " Some warning signs: " + "; ".join(h["why"].lower() for h in v.rule_hits) + "."
+        else:
+            out = f"{ICONS.get(v.label, '')} **{v.label}**, risk {v.risk:.0%}.\n\n**Why:**\n" + \
+                  "\n".join(f"* {h['why']}" + (f": *{', '.join(sorted(set(map(str, h['matches']))))[:60]}*" if h["matches"] else "")
+                            for h in v.rule_hits)
+            out += f"\n\n**What to do:** {v.info['action']}"
+        for ln in (v.links if v.label == SAFE else []):   # alerts already list the link findings above
+            if ln["findings"]:
+                out += f"\n\n🔗 `{ln['host']}`: " + "; ".join(w for _, _, w in ln["findings"])
+        return out, "scan"
+    (topic, q, _, a), sim = faq_index().best(t)
+    if sim < 0.18:
+        return ("I don't have a prepared answer for that. Try one of the suggested questions, or paste a message "
+                "and I will check whether it is a scam."), "none"
+    return f"**{q}**\n\n{a}", "faq"
+
+
+def page_ask():
+    st.title("💬 Ask SocialShield")
+    st.markdown("<div class='intro'>Ask anything about the project, or <b>paste a message</b> to check if it is a scam. "
+                "Answers come from our measured results, so no number here is made up.</div>", unsafe_allow_html=True)
+    ss = st.session_state
+    ss.setdefault("chat", [])
+    topics = {}
+    for t, q, _, _ in faq.FAQ:
+        topics.setdefault(t, []).append(q)
+    tabs = st.tabs(list(topics))
+    for tab, (t, qs) in zip(tabs, topics.items()):
+        with tab:
+            cols = st.columns(2)
+            for i, q in enumerate(qs):
+                if cols[i % 2].button(q, key=f"faq_{t}_{i}", use_container_width=True):
+                    ss.chat.append(("user", q))
+                    ss.chat.append(("assistant", answer(q)[0]))
+    with st.container():   # inside a container the input sits here, above the answers, not pinned to the bottom
+        typed = st.chat_input("Ask a question, or paste a message to check")
+    if typed:
+        ss.chat.append(("user", typed))
+        ss.chat.append(("assistant", answer(typed)[0]))
+    if ss.chat:
+        if st.button("Clear conversation", key="chat_clear"):
+            ss.chat = []
+            st.rerun()
+    for (_, q), (_, a) in reversed(list(zip(ss.chat[::2], ss.chat[1::2]))):   # newest first
+        with st.chat_message("user"):
+            st.markdown(q)
+        with st.chat_message("assistant", avatar="🛡️"):
+            st.markdown(a)
+
+
 # ================================================================ NAVIGATION
-P = {"home": st.Page(page_home, title="Start here", icon="🏠", default=True),
-     "overview": st.Page(page_overview, title="Overview", icon="📊", url_path="overview"),
-     "feed": st.Page(page_feed, title="Live Threat Feed", icon="🚨", url_path="feed"),
-     "dms": st.Page(page_dm, title="DM Inbox", icon="✉️", url_path="dms"),
-     "scan": st.Page(page_analyzer, title="Message Scanner", icon="🔍", url_path="scan"),
-     "accounts": st.Page(page_accounts, title="Account Inspector", icon="👤", url_path="accounts"),
-     "spread": st.Page(page_spread, title="Spread Network", icon="🕸️", url_path="spread"),
-     "evasion": st.Page(page_evasion, title="Evasion Lab", icon="🧪", url_path="evasion"),
-     "incidents": st.Page(page_incidents, title="Incident Log", icon="📒", url_path="incidents")}
-nav = st.navigation({
-    "": [P["home"]],
-    "Monitor": [P["overview"], P["feed"], P["dms"]],
-    "Investigate": [P["scan"], P["accounts"]],
-    "Respond": [P["incidents"]],
-    "Research": [P["spread"], P["evasion"]],
-})
+P = {"home": st.Page(page_dashboard, title="Dashboard", icon="🛡️", default=True),
+     "check": st.Page(page_check, title="Check a message", icon="🔍", url_path="check"),
+     "feed": st.Page(page_feed, title="Live feed", icon="🚨", url_path="feed"),
+     "accounts": st.Page(page_accounts, title="Fake accounts", icon="👤", url_path="accounts"),
+     "research": st.Page(page_research, title="Research", icon="🔬", url_path="research"),
+     "ask": st.Page(page_ask, title="Ask SocialShield", icon="💬", url_path="ask")}
+nav = st.navigation(list(P.values()))
 @st.cache_resource
 def seed_dm_alerts(mtime):
     """Incoming DMs flagged by the detector become open alerts as soon as the app starts."""
@@ -1133,13 +1220,13 @@ if (ROOT / "data/dm_messages.csv").exists():
 
 with st.sidebar:
     n_open = sum(i["status"] == incidents.OPEN for i in incidents.all_incidents())
-    st.page_link(P["incidents"], label=f"**{n_open} open alerts**", icon="🔔")
+    st.page_link(P["home"], label=f"**{n_open} open alerts**", icon="🔔")
     ready, model = ai_status()
     st.session_state.setdefault("ai_on", False)
-    st.toggle("🤖 AI second opinion", key="ai_on", disabled=not ready,
-              help="A local AI model double-checks messages the rules and ML model think are safe. Off by default: on unseen messages it caught 94% of attacks but also flagged 67% of genuine ones. "
-                   "Runs on this laptop with Ollama; nothing is sent to the internet.")
-    st.caption(f"Local model: {model}" if ready else f"AI layer offline: {model}")
+    if ready:   # only shown on the laptop, where the local AI can run
+        st.toggle("🤖 AI second opinion", key="ai_on",
+                  help="A local AI model double-checks messages the rules and ML model think are safe. Off by default: on unseen messages it caught 94% of attacks but also flagged 67% of genuine ones. "
+                       "Runs on this laptop with Ollama; nothing is sent to the internet.")
     st.divider()
-    st.caption("Network Security Project · MPSTME\n\nData: Kaggle (synthetic). DMs and spread paths simulated.")
+    st.caption("Network Security Project · MPSTME\n\nPravara Jain · Yash Mehta · Somya Soni")
 nav.run()

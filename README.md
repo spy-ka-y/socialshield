@@ -7,6 +7,16 @@ spam, misinformation, impersonation, adult scams), lets an analyst respond to ev
 (block, quarantine, false alarm), shows how misinformation spreads, and tests how well the
 models hold up when attackers adapt.
 
+## The app (6 pages)
+| Page | What it does |
+|---|---|
+| Dashboard | What SocialShield does in 5 steps, headline numbers, open alerts (Block / Quarantine / Not a threat), who is attacking, incident log |
+| Check a message | Scan any message with a full explanation; DM inbox of team-written or real messages |
+| Live feed | Posts or real SMS stream in and are scanned live |
+| Fake accounts | Why an account looks fake, and what kind of attacker it is |
+| Research | Misinformation spread, evasion tests, real-world check |
+| Ask SocialShield | Ask questions about the project (prepared answers from measured results) or paste a message to check |
+
 ## Detection layers
 0. **Normaliser**: undoes evasion tricks (invisible characters, look-alike letters, leetspeak,
    spaced or dotted letters, disguised links) before anything else reads the message,
@@ -47,7 +57,7 @@ Open [notebooks/SocialShield_Training.ipynb](https://colab.research.google.com/g
 | `python src/message_evasion_test.py` | Obfuscation attacks on messages, with and without the normaliser |
 | `python src/link_test.py <phishing_domains.txt> <top_domains.txt>` | Link checks on 10,000 real phishing domains and the 10,000 most popular real sites |
 
-Results are saved in `reports/` and shown in the app's Evasion Lab. The Live Feed and DM Inbox can also switch
+Results are saved in `reports/` and shown on the app's Research page. The Live feed and the DM inbox can also switch
 from the synthetic dataset to the 5,574 real SMS messages, with each message's true label shown.
 
 ## Change the colour theme
