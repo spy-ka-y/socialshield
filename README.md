@@ -35,6 +35,9 @@ streamlit run app.py
 On first start the app trains its models automatically (about 2 minutes).
 The AI layer is skipped when Ollama is not available, for example on Streamlit Cloud.
 
+## How the models are trained (Colab)
+Open [notebooks/SocialShield_Training.ipynb](https://colab.research.google.com/github/spy-ka-y/socialshield/blob/main/notebooks/SocialShield_Training.ipynb) in Google Colab and choose Runtime > Run all. It walks through every training step with charts, in about 3 minutes.
+
 ## Research experiments
 | Script | What it measures |
 |---|---|
